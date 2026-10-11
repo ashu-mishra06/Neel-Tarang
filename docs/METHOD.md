@@ -227,3 +227,83 @@ write `data/derived/ghat_scores.json` with every component visible.
 - The reason text quotes single readings and matched pairs only. Paired
   means appear in the JSON (`paired_pre_mean`, `paired_during_mean`) and are
   computed over the same tables.
+
+## Evidence and gaps (Level 3)
+
+- `scoring/evidence.py` lists every reading (1,524 rows: scored parameters
+  first, then context parameters). Each row has the value as printed, unit,
+  limit (or "no class B limit"), result, year, festival, phase, source page,
+  report name, a link that opens the public report at that page
+  (`url#page=N`), and whether it is an unpaired breach. Results read
+  "breach", "within limit", "not sampled", "BDL - very low, not zero" or "no
+  class B limit". Uploaded rows (Level 6) show "user-supplied" and have no
+  link. Export: `python -m scoring.evidence` writes
+  `data/derived/evidence.csv`.
+- `render_page_image(year, page)` renders the cited page of the local PDF in
+  `resources/` with PyMuPDF and caches it in `data/derived/pages/` (not
+  committed; rebuilt on demand).
+- `scoring/gaps.py` builds the gap register. Run `python -m scoring.gaps`;
+  it writes `data/derived/gap_register.json`.
+
+### Gap register (generated 11 Oct 2026)
+
+| Gap | Ghats / items |
+|---|---|
+| Missing festival-year tables | Bairagarh: no Durga 2025 table; Malikhedi: no Durga 2025 table |
+| Cells marked not sampled | Bairagarh 26/192, Malikhedi 26/192, Khatlapura 5/228, Prempura 4/228 (scored-parameter cells listed in the JSON) |
+| Tables with one column of numbers | Bairagarh and Malikhedi Ganesh 2025: numbers only in the "During" column; Pre/After blank, pH shows * and ** |
+| Breaches that cannot be compared | Bairagarh DO 0 and BOD 8 (Ganesh 2025 during, p.28); Malikhedi DO 0.6 and BOD 5.8 (Ganesh 2025 during, p.29); Khatlapura BOD 7.8 (Durga 2023 after, p.59, no during reading) |
+| Designated 2026 ghats with no past readings | Arch Bridge |
+| Ghats not on the reported 2026 list | Shahpura, Rani Kamlapati / Kamla Park |
+| Site name may cover two places | Rani Kamlapati / Kamla Park (confidence capped at Medium) |
+| Only four metals; no class B limit | Cr 50 quantified / 65 BDL / 5 not sampled; Pb 63/52/5; Zn 94/21/5; Cu 79/36/5 |
+| Units assumed | All parameters (reports print none) |
+| Standard choice | CPCB class B (outdoor bathing); no health conclusions |
+| Lake-side ghats vs 2026 kunds | Past readings may not describe the new set-ups |
+| 2026 list from a press report | Ganesh 2026 list (FPJ 22 Sep 2026, URL to be added); Durga list may differ |
+
+### Verification (Level 3, 11 Oct 2026)
+
+Automated, against the local PDFs (`tests/test_evidence.py`):
+
+| Check | Result |
+|---|---|
+| Every evidence row's source page within the report range (2023: 26-61; 2024: 23-72; 2025: 28-65) | 1,524 / 1,524 |
+| Every `value_as_printed` found on its cited page | 1,476 / 1,476 (one `**` is printed as `* *`) |
+| Every printed site name found on its cited page | 40 / 40 tables |
+
+Visual, by Claude, on rendered page images (5 random readings, seed
+20261011). All five match the page:
+
+| Reading | Page | Matches |
+|---|---|---|
+| Rani Kamlapati, pH, Durga 2023 pre = 8.07 | 2023 p.59 | yes |
+| Prempura, BOD, Ganesh 2023 during = 1.5 | 2023 p.26 | yes |
+| Prempura, pH, Ganesh 2024 after = 8.05 | 2024 p.70 | yes |
+| Malikhedi, pH, Ganesh 2024 during = 7.38 | 2024 p.71 | yes |
+| Prempura, DO, Ganesh 2024 during = 3.9 | 2024 p.70 | yes |
+
+Also seen on the images: Malikhedi's matched DO pair 4.8 -> 3.8 (2024 p.71),
+and the Malikhedi Ganesh 2025 table (2025 p.29), where 0.6 sits in the
+"During Immersion" column with Pre and After blank.
+
+**N2 spot-check (human): PENDING.** Open each link and tick if the value and
+ghat match the page.
+
+| # | Ghat | Parameter | Table / phase | Value | Link | N2 result |
+|---|---|---|---|---|---|---|
+| 1 | Hathaikheda dam / kund | BOD | Durga 2025 during | 8 | [Report 2025 p.64](https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2025.pdf#page=64) | |
+| 2 | Bairagarh (Sant Hirdaram) kund | pH | Durga 2023 pre | 7.32 | [Report 2023 p.60](https://www.mppcb.mp.gov.in/proc/mon/Idol_immer._Report_23_CPCB.pdf#page=60) | |
+| 3 | Rani Kamlapati ghat / Kamla Park kund | Dissolved oxygen | Durga 2023 during | 6 | [Report 2023 p.59](https://www.mppcb.mp.gov.in/proc/mon/Idol_immer._Report_23_CPCB.pdf#page=59) | |
+| 4 | Rani Kamlapati ghat / Kamla Park kund | BOD | Durga 2024 pre | 5.6 | [Report 2024 p.24](https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2024.pdf#page=24) | |
+| 5 | Hathaikheda dam / kund | BOD | Durga 2024 after | 4.6 | [Report 2024 p.23](https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2024.pdf#page=23) | |
+| 6 | Khatlapura ghat | BOD | Durga 2025 during | 4.6 | [Report 2025 p.64](https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2025.pdf#page=64) | |
+| 7 | Shahpura lake ghat | pH | Ganesh 2023 after | 7.76 | [Report 2023 p.28](https://www.mppcb.mp.gov.in/proc/mon/Idol_immer._Report_23_CPCB.pdf#page=28) | |
+| 8 | Khatlapura ghat | BOD | Ganesh 2024 during | 7.2 | [Report 2024 p.69](https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2024.pdf#page=69) | |
+| 9 | Shahpura lake ghat | BOD | Ganesh 2023 during | 8.4 | [Report 2023 p.28](https://www.mppcb.mp.gov.in/proc/mon/Idol_immer._Report_23_CPCB.pdf#page=28) | |
+| 10 | Hathaikheda dam / kund | Dissolved oxygen | Ganesh 2024 during | 5.3 | [Report 2024 p.71](https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2024.pdf#page=71) | |
+
+The links point to the public MPPCB site. They were built, not opened, in
+this session (no network use). The same page numbers were checked against
+the local copies of the PDFs, which the organisers downloaded from those
+URLs on 10 Oct 2026.

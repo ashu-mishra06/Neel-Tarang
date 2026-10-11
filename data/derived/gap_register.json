@@ -1,0 +1,149 @@
+[
+  {
+    "id": "missing_tables",
+    "category": "missing data",
+    "title": "Missing festival-year tables",
+    "detail": "The report has no table for these ghat-festival-years. Nothing is assumed for them; confidence is lowered.",
+    "ghats": [
+      "Bairagarh (Sant Hirdaram) kund",
+      "Malikhedi kund"
+    ],
+    "items": [
+      "Bairagarh (Sant Hirdaram) kund: no Durga 2025 table",
+      "Malikhedi kund: no Durga 2025 table"
+    ]
+  },
+  {
+    "id": "not_sampled",
+    "category": "missing data",
+    "title": "Cells marked not sampled",
+    "detail": "Shown as 'not sampled' everywhere, never as clean and never as 0.",
+    "ghats": [
+      "Bairagarh (Sant Hirdaram) kund",
+      "Khatlapura ghat",
+      "Malikhedi kund",
+      "Prempura ghat"
+    ],
+    "items": [
+      "Bairagarh (Sant Hirdaram) kund: 26 of 192 cells not sampled; scored parameters: pH Ganesh 2025 after (**); Dissolved oxygen Ganesh 2025 after (not sampled); BOD Ganesh 2025 after (not sampled); pH Ganesh 2025 pre (*); Dissolved oxygen Ganesh 2025 pre (not sampled); BOD Ganesh 2025 pre (not sampled)",
+      "Khatlapura ghat: 5 of 228 cells not sampled; scored parameters: BOD Durga 2023 during (not sampled)",
+      "Malikhedi kund: 26 of 192 cells not sampled; scored parameters: pH Ganesh 2025 after (**); Dissolved oxygen Ganesh 2025 after (not sampled); BOD Ganesh 2025 after (not sampled); pH Ganesh 2025 pre (*); Dissolved oxygen Ganesh 2025 pre (not sampled); BOD Ganesh 2025 pre (not sampled)",
+      "Prempura ghat: 4 of 228 cells not sampled; scored parameters: BOD Durga 2023 after (not sampled); pH Durga 2023 during (not sampled); BOD Durga 2023 during (not sampled); BOD Durga 2023 pre (not sampled)"
+    ]
+  },
+  {
+    "id": "single_column_tables",
+    "category": "caveat",
+    "title": "Tables with one column of numbers",
+    "detail": "These tables print numbers in one phase column only; the other columns are blank (the pH row shows * and **: not sampled at that stage). Checked against the page image. Their breaches cannot be compared with a pre reading and are listed as unpaired breaches.",
+    "ghats": [
+      "Bairagarh (Sant Hirdaram) kund",
+      "Malikhedi kund"
+    ],
+    "items": [
+      "Bairagarh (Sant Hirdaram) kund: Ganesh 2025 has values only under 'during'",
+      "Malikhedi kund: Ganesh 2025 has values only under 'during'"
+    ]
+  },
+  {
+    "id": "unpaired_breaches",
+    "category": "missing data",
+    "title": "Breaches that cannot be compared",
+    "detail": "These readings breach the limit but have no matching earlier reading in the same table. They do not change the score; they lower confidence by one level.",
+    "ghats": [
+      "Bairagarh (Sant Hirdaram) kund",
+      "Khatlapura ghat",
+      "Malikhedi kund"
+    ],
+    "items": [
+      "Bairagarh (Sant Hirdaram) kund: BOD 8 mg/l, Ganesh 2025 during, p.28 (no valid pre-immersion reading in this table)",
+      "Bairagarh (Sant Hirdaram) kund: Dissolved oxygen 0 mg/l, Ganesh 2025 during, p.28 (no valid pre-immersion reading in this table)",
+      "Malikhedi kund: BOD 5.8 mg/l, Ganesh 2025 during, p.29 (no valid pre-immersion reading in this table)",
+      "Malikhedi kund: Dissolved oxygen 0.6 mg/l, Ganesh 2025 during, p.29 (no valid pre-immersion reading in this table)",
+      "Khatlapura ghat: BOD 7.8 mg/l, Durga 2023 after, p.59 (no valid during-immersion reading in this table)"
+    ]
+  },
+  {
+    "id": "designated_not_in_data",
+    "category": "coverage",
+    "title": "Designated 2026 ghats with no past readings",
+    "detail": "Reported as a 2026 immersion ghat but absent from the MPPCB 2023-2025 reports. Not ranked, never given a risk score; any test there is new information.",
+    "ghats": [
+      "Arch Bridge"
+    ],
+    "items": [
+      "Arch Bridge: Designated for 2026 but no readings in MPPCB 2023-2025 data"
+    ]
+  },
+  {
+    "id": "not_on_2026_list",
+    "category": "coverage",
+    "title": "Ghats not on the reported 2026 list",
+    "detail": "Have past readings but were not on the reported Ganesh 2026 list. Kept in the ranking; confirm with BMC whether they are used for Durga.",
+    "ghats": [
+      "Rani Kamlapati ghat / Kamla Park kund",
+      "Shahpura lake ghat"
+    ],
+    "items": [
+      "Rani Kamlapati ghat / Kamla Park kund: confirm with BMC",
+      "Shahpura lake ghat: confirm with BMC"
+    ]
+  },
+  {
+    "id": "site_match_uncertain",
+    "category": "site",
+    "title": "Site name may cover two places",
+    "detail": "Ganesh tables say 'Kamla Park kund'; Durga tables say 'Lower Lake ghat'. Kept as one ghat, not split; confidence capped at Medium.",
+    "ghats": [
+      "Rani Kamlapati ghat / Kamla Park kund"
+    ],
+    "items": [
+      "Rani Kamlapati ghat / Kamla Park kund: Report tables name this site differently between festivals (site match confidence: medium); readings may come from two places."
+    ]
+  },
+  {
+    "id": "only_four_metals",
+    "category": "caveat",
+    "title": "Only four metals tested; none has a class B limit",
+    "detail": "Chromium, lead, zinc and copper are shown as context only and are not scored. BDL means very low, not zero.",
+    "ghats": [],
+    "items": [
+      "Chromium: 50 quantified, 65 BDL, 5 not sampled",
+      "Lead: 63 quantified, 52 BDL, 5 not sampled",
+      "Zinc: 94 quantified, 21 BDL, 5 not sampled",
+      "Copper: 79 quantified, 36 BDL, 5 not sampled"
+    ]
+  },
+  {
+    "id": "units_assumed",
+    "category": "caveat",
+    "title": "Units are assumed",
+    "detail": "The reports print no units. The organisers assumed the standard unit for each test (mg/l for DO and BOD; none for pH).",
+    "ghats": [],
+    "items": []
+  },
+  {
+    "id": "standard_choice",
+    "category": "caveat",
+    "title": "Standard used: CPCB class B (outdoor bathing)",
+    "detail": "Class B (outdoor bathing) is the yardstick chosen for this tool. Readings are compared with its limits only; no health conclusions are drawn.",
+    "ghats": [],
+    "items": []
+  },
+  {
+    "id": "lake_vs_kund",
+    "category": "caveat",
+    "title": "Past readings are from lake-side ghats",
+    "detail": "2026 immersion is meant to use tanks/kunds; NGT directions bar immersion in Upper and Lower Lake. 2023-2025 readings may not describe the new set-ups.",
+    "ghats": [],
+    "items": []
+  },
+  {
+    "id": "designated_list_source",
+    "category": "caveat",
+    "title": "2026 list is from a press report",
+    "detail": "The designated list is the Ganesh 2026 list reported by Free Press Journal (22 Sep 2026; article URL still to be added). The Durga 2026 list may differ - verify with BMC.",
+    "ghats": [],
+    "items": []
+  }
+]

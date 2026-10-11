@@ -116,3 +116,26 @@ scoring:
   # If the ghat's site name match is "medium" (may be two places), confidence
   # is at most this.
   site_match_medium_cap: Medium
+
+# MPPCB reports: evidence links open url#page=<source_page>; page images are
+# rendered from the local PDF. page_range = pages where the Bhopal tables sit
+# (checked against the CSV on 11 Oct 2026).
+reports:
+  "2023":
+    name: MPPCB Idol Immersion Report 2023 (CPCB format)
+    url: https://www.mppcb.mp.gov.in/proc/mon/Idol_immer._Report_23_CPCB.pdf
+    file: resources/Idol_immer._Report_23_CPCB.pdf
+    page_range: [26, 61]
+  "2024":
+    name: MPPCB Ganesh and Durga Visarjan Report 2024
+    url: https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2024.pdf
+    file: resources/Ganesh_and_Durga_visarjan_report-2024.pdf
+    page_range: [23, 72]
+  "2025":
+    name: MPPCB Ganesh and Durga Visarjan Report 2025
+    url: https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2025.pdf
+    file: resources/Ganesh_and_Durga_visarjan_report-2025.pdf
+    page_range: [28, 65]
+pages_cache_dir: data/derived/pages
+evidence_csv: data/derived/evidence.csv
+gap_register_json: data/derived/gap_register.json
