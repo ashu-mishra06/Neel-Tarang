@@ -98,6 +98,7 @@ class GhatScore:
     reason: str
     reason_short: str
     on_2026_list: bool
+    list_status: str  # designated | in_use | none
     labels: list[str] = field(default_factory=list)
     parameters: list[ParameterDetail] = field(default_factory=list)
     matched_pairs: list[dict[str, Any]] = field(default_factory=list)
@@ -366,12 +367,22 @@ def _top_baseline(details: list[ParameterDetail]) -> str | None:
 def load_designated(rules: dict[str, Any]) -> pd.DataFrame:
     path = repo_path(rules["designated_ghats_csv"])
     if not path.exists():
-        return pd.DataFrame(columns=["ghat_name", "data_site"])
+        return pd.DataFrame(columns=["ghat_name", "data_site", "list_type"])
     return pd.read_csv(path, dtype=str, keep_default_na=False)
 
 
-def _labels(g: pd.DataFrame, on_list: bool) -> list[str]:
-    labels = [] if on_list else ["Not on reported 2026 list - confirm with BMC"]
+def _list_type(row: Any) -> str:
+    """'designated' (22 Sep list) or 'in_use' (reported in use, 24 Sep)."""
+    return getattr(row, "list_type", "") or "designated"
+
+
+IN_USE_LABEL = ("Used for Ganesh 2026 per FPJ 24 Sep (not on the 22 Sep designated list); "
+                "Durga list - confirm with BMC")
+NO_LIST_LABEL = "Not on any reported 2026 list - confirm with BMC"
+
+
+def _labels(g: pd.DataFrame, list_status: str) -> list[str]:
+    labels = {"none": [NO_LIST_LABEL], "in_use": [IN_USE_LABEL]}.get(list_status, [])
     if site_match(g)[0]:
         labels.append("Site name match is medium confidence - may cover two places")
     return labels
@@ -398,7 +409,9 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
     unpaired = unpaired_breaches(g, limits)
     details = parameter_details(g, triples, anchor, limits, rules)
     near, nearest = near_boundary(risk, rules)
-    on_list = name in ctx["designated_sites"]
+    status = ("designated" if name in ctx["designated_sites"] else
+              "in_use" if name in ctx["in_use_sites"] else "none")
+    on_list = status != "none"
     parts = reason_parts(g, _top_baseline(details), pairs, unpaired,
                          critical.readings if critical else [], limits)
     poor = base["score"] is not None and base["score"] >= rules["scoring"]["driver"]["baseline"]
@@ -416,8 +429,8 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
         confidence=confidence_for(g, ctx["expected_tables"], ctx["latest_durga"],
                                   len(limits), rules, unpaired, uncertain),
         critical=critical, reason=reason_text(parts),
-        reason_short=short_reason(parts, worse, poor), on_2026_list=on_list,
-        labels=_labels(g, on_list), parameters=details, matched_pairs=pairs,
+        reason_short=short_reason(parts, worse, poor), on_2026_list=on_list, list_status=status,
+        labels=_labels(g, status), parameters=details, matched_pairs=pairs,
         unpaired_breaches=unpaired, persistence=persistence(g, limits, rules),
     )
 
@@ -443,7 +456,10 @@ def _context(df: pd.DataFrame, limits: dict[str, Limit], rules: dict[str, Any],
     return {
         "rules": rules, "limits": limits, "expected_tables": tables,
         "latest_durga": ("Durga", durga_years[-1]) if durga_years else None,
-        "designated_sites": {r.data_site or r.ghat_name for r in designated.itertuples()},
+        "designated_sites": {r.data_site or r.ghat_name for r in designated.itertuples()
+                             if _list_type(r) == "designated"},
+        "in_use_sites": {r.data_site or r.ghat_name for r in designated.itertuples()
+                         if _list_type(r) == "in_use"},
     }
 
 

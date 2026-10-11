@@ -385,7 +385,9 @@ def test_real_bairagarh_zero_do_flag(real: Scores) -> None:
 
 def test_real_labels(real: Scores) -> None:
     by = {s.ghat: s for s in real.ranked}
-    assert not by["Shahpura lake ghat"].on_2026_list
+    assert by["Shahpura lake ghat"].list_status == "in_use"
+    assert by["Prempura ghat"].list_status == "designated"
+    assert any("FPJ 24 Sep" in x for x in by["Shahpura lake ghat"].labels)
     assert any("medium confidence" in x for x in by["Rani Kamlapati ghat / Kamla Park kund"].labels)
 
 

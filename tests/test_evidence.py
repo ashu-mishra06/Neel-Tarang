@@ -181,8 +181,9 @@ def test_gap_register_contents() -> None:
     assert "Bairagarh (Sant Hirdaram) kund: no Durga 2025 table" in tables
     assert "Malikhedi kund: no Durga 2025 table" in tables
     assert gaps["designated_not_in_data"].ghats == ["Arch Bridge"]
-    assert set(gaps["not_on_2026_list"].ghats) == {
+    assert set(gaps["in_use_not_designated"].ghats) == {
         "Shahpura lake ghat", "Rani Kamlapati ghat / Kamla Park kund"}
+    assert "not_on_2026_list" not in gaps  # every ranked ghat is on a reported 2026 list
     assert gaps["site_match_uncertain"].ghats == ["Rani Kamlapati ghat / Kamla Park kund"]
     for required in ("not_sampled", "units_assumed", "only_four_metals", "lake_vs_kund",
                      "unpaired_breaches", "single_column_tables"):

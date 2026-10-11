@@ -52,8 +52,11 @@ def flag_chips(s: Any, lang: str = "en") -> list[str]:
         chips.append(f"! {t('zero_do')} ×{s.critical.count}")
     if s.unpaired_breaches:
         chips.append(f"⊘ {len(s.unpaired_breaches)} {t('not_comparable')}")
-    if not s.on_2026_list:
+    status = getattr(s, "list_status", "designated" if s.on_2026_list else "none")
+    if status == "none":
         chips.append(t("not_on_list"))
+    elif status == "in_use":
+        chips.append(t("in_use_2026"))
     return [f'<span class="vgw-chip warn">{E(c)}</span>' for c in chips]
 
 

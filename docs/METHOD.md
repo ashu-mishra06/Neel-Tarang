@@ -386,3 +386,14 @@ Charts are plain Vega-Lite specs from engine numbers (`ui/charts.py`). A
 risk-breakdown bar shows the baseline part plus the festival part, which
 sum to the risk score. Per-ghat before/during charts plot every matched
 pair against the class B limit, with unpaired breaches as crosses.
+
+## 2026 ghat lists (updated 11 Oct 2026)
+
+Two Free Press Journal reports, both about Ganesh 2026:
+- 22 Sep, designated list: Prempura, Khatlapura, Hathaikheda Dam, Arch Bridge,
+  Bairagarh, Malikhedi.
+- 24 Sep, in-use list: adds Rani Kamlapati and Shahpura.
+
+These two ghats now read "Used for Ganesh 2026 per FPJ 24 Sep (not on the 22 Sep
+designated list); Durga list - confirm with BMC" (`list_status: in_use`),
+replacing "Not on reported 2026 list" (D4). Scores and ranking are unchanged.

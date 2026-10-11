@@ -60,8 +60,10 @@ TEXT: dict[str, dict[str, str]] = {
     "site_two": {"en": "Site may be two places", "hi": "स्थान दो जगह हो सकता है"},
     "zero_do": {"en": "Reported 0 mg/l DO", "hi": "DO 0 mg/l दर्ज"},
     "not_comparable": {"en": "breach(es) not comparable", "hi": "उल्लंघन तुलना योग्य नहीं"},
-    "not_on_list": {"en": "Not on reported 2026 list - confirm with BMC",
-                    "hi": "2026 की सूची में नहीं - BMC से पुष्टि करें"},
+    "not_on_list": {"en": "Not on any reported 2026 list - confirm with BMC",
+                    "hi": "2026 की किसी सूची में नहीं - BMC से पुष्टि करें"},
+    "in_use_2026": {"en": "Used for Ganesh 2026 (FPJ 24 Sep); Durga list - confirm with BMC",
+                    "hi": "गणेश 2026 में उपयोग हुआ (FPJ 24 सितंबर); दुर्गा सूची - BMC से पुष्टि करें"},
     "tier_note": {
         "en": "Tier lines: Medium ≥ {medium}, High ≥ {high}. Tiers show relative concern among "
               "these {n} ghats, not a safety certification.",
@@ -167,9 +169,13 @@ GAP_HI: dict[str, tuple[str, str]] = {
                                "2026 के विसर्जन घाट के रूप में बताए गए, पर MPPCB 2023-2025 "
                                "रिपोर्ट में नहीं। कोई अंक या श्रेणी नहीं; यहाँ कोई भी जाँच नई "
                                "जानकारी होगी।"),
-    "not_on_2026_list": ("2026 की सूची में न होने वाले घाट",
-                         "पिछली रीडिंग हैं पर 2026 गणेश सूची में नहीं थे। सूची में रखे गए हैं; "
+    "not_on_2026_list": ("2026 की किसी सूची में न होने वाले घाट",
+                         "पिछली रीडिंग हैं पर 2026 की किसी सूची में नहीं। सूची में रखे गए हैं; "
                          "दुर्गा के लिए BMC से पुष्टि करें।"),
+    "in_use_not_designated": ("गणेश 2026 में उपयोग, पर घोषित सूची में नहीं",
+                              "22 सितंबर 2026 की घोषित सूची में नहीं, पर गणेश 2026 में उपयोग की "
+                              "सूचना (Free Press Journal, 24 सितंबर 2026)। सूची में रखे गए हैं; "
+                              "दुर्गा सूची अलग हो सकती है - BMC से पुष्टि करें।"),
     "site_match_uncertain": ("स्थान दो जगह हो सकता है",
                              "गणेश तालिकाओं में 'Kamla Park kund', दुर्गा तालिकाओं में 'Lower "
                              "Lake ghat'। एक ही घाट माना गया; भरोसा अधिकतम मध्यम।"),

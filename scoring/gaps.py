@@ -114,12 +114,19 @@ def blind_spots(scores: Scores, designated: pd.DataFrame, df: pd.DataFrame) -> l
                         "reports. Not ranked, never given a risk score; any test there is new "
                         "information.", [b.ghat for b in missing],
                         [f"{b.ghat}: {b.why}" for b in missing]))
-    listed = set(designated["data_site"]) - {""}
-    off_list = sorted(g for g in in_data if g not in listed)
-    if off_list and len(listed):
-        gaps.append(Gap("not_on_2026_list", "coverage", "Ghats not on the reported 2026 list",
-                        "Have past readings but were not on the reported Ganesh 2026 list. "
-                        "Kept in the ranking; confirm with BMC whether they are used for Durga.",
+    in_use = sorted(s.ghat for s in scores.ranked if s.list_status == "in_use")
+    if in_use:
+        gaps.append(Gap("in_use_not_designated", "coverage",
+                        "Used for Ganesh 2026 but not on the designated list",
+                        "Not on the 22 Sep 2026 designated list, but reported in use for Ganesh "
+                        "2026 (Free Press Journal, 24 Sep 2026). Kept in the ranking; the Durga "
+                        "list may differ - confirm with BMC.",
+                        in_use, [f"{g}: confirm Durga use with BMC" for g in in_use]))
+    off_list = sorted(s.ghat for s in scores.ranked if s.list_status == "none")
+    if off_list and len(designated):
+        gaps.append(Gap("not_on_2026_list", "coverage", "Ghats not on any reported 2026 list",
+                        "Have past readings but appear on no reported 2026 list. Kept in the "
+                        "ranking; confirm with BMC whether they are used for Durga.",
                         off_list, [f"{g}: confirm with BMC" for g in off_list]))
     return gaps
 
@@ -160,7 +167,8 @@ def fixed_caveats(rules: dict[str, Any]) -> list[Gap]:
             "and Lower Lake. 2023-2025 readings may not describe the new set-ups.", [], []),
         Gap("designated_list_source", "caveat", "2026 list is from a press report",
             "The designated list is the Ganesh 2026 list reported by Free Press Journal "
-            "(22 Sep 2026; URL in data/context/designated_ghats_2026.csv). The Durga 2026 list may differ - "
+            "(22 Sep 2026); a 24 Sep report adds Shahpura and Rani Kamlapati as in use. "
+            "URLs in data/context/designated_ghats_2026.csv. The Durga 2026 list may differ - "
             "verify with BMC.", [], []),
     ]
 

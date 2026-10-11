@@ -85,8 +85,8 @@ immersion vs worse during immersion).
   0.40 baseline cut-off from the brief; no ghat currently gets it.
 - Report links point to the public MPPCB PDFs. They were checked against the
   local copies in `resources/`, not opened online.
-- The 2026 designated-ghat list comes from a press report. The article URL
-  is still to be added, and the Durga list may differ (confirm with BMC).
+- The 2026 ghat lists come from press reports (FPJ 22 and 24 Sep 2026), both
+  for Ganesh. The Durga list may differ (confirm with BMC).
 
 ## Data
 
@@ -95,8 +95,10 @@ immersion vs worse during immersion).
   `data/DATA_DICTIONARY.md`.
 - `data/context/designated_ghats_2026.csv`: the Ganesh 2026 designated ghats
   as reported by Free Press Journal on 22 Sep 2026: [BMC Deploys 174 Divers At Bhopal Ghats For Ganesh Idol Immersion](https://www.freepressjournal.in/bhopal/bmc-deploys-174-divers-at-bhopal-ghats-for-ganesh-idol-immersion).
-  Context only. It is used for the "No baseline" section and the "not on the
-  2026 list" label.
+  A second report (FPJ 24 Sep 2026,
+  [Nearly 30 Ganpati Collection Stalls Set Up...](https://www.freepressjournal.in/bhopal/bhopal-ganesh-visarjan-2026-nearly-30-ganpati-collection-stalls-set-up-180-divers-deployed-khatlapura-ghat-prempura-ghat-ready-ahead-of-anant-chaturdashi))
+  lists Shahpura and Rani Kamlapati as in use. Context only: used for the
+  "No baseline" section and the 2026-list labels.
 - `data/mp_immersion_sites_2023_2025.csv` (statewide): **not used**. It was
   planned as a less-checked context benchmark only (Level 7D, cut).
 - Derived output is in `data/derived/`: `ghat_scores.json`, `evidence.csv`,
