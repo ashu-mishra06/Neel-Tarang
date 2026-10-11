@@ -72,20 +72,31 @@ def unpaired_sentence(unpaired: list[dict[str, Any]], examples: int = 2) -> str 
             f"{'; '.join(_unpaired_item(u) for u in shown)}{more}.")
 
 
-def reason_text(
+def reason_parts(
     g: pd.DataFrame, baseline_parameter: str | None, pairs: list[dict[str, Any]],
     unpaired: list[dict[str, Any]], critical_count: int, limits: dict[str, Limit],
-) -> str:
-    """Join the reason sentences that apply to this ghat."""
-    parts: list[str | None] = []
-    if baseline_parameter:
-        parts.append(baseline_sentence(g, baseline_parameter, limits[baseline_parameter]))
+) -> dict[str, str | None]:
+    """The reason sentences, by name: baseline, pair, unpaired, critical."""
     pair = worst_pair(pairs, limits)
-    parts.append(pair_sentence(pair, limits[pair["parameter"]]) if pair else
-                 "No matched reading got worse during immersion." if pairs else
-                 "No table has both pre- and during-immersion readings to compare.")
-    parts.append(unpaired_sentence(unpaired))
-    if critical_count:
-        parts.append(f"Reported 0 mg/l dissolved oxygen {critical_count} time(s) "
-                     "(team's own flag, not a CPCB limit).")
-    return " ".join(p for p in parts if p) or "No pre-immersion readings breached a limit."
+    return {
+        "baseline": baseline_sentence(g, baseline_parameter, limits[baseline_parameter])
+        if baseline_parameter else None,
+        "pair": pair_sentence(pair, limits[pair["parameter"]]) if pair else
+        "No matched reading got worse during immersion." if pairs else
+        "No table has both pre- and during-immersion readings to compare.",
+        "unpaired": unpaired_sentence(unpaired),
+        "critical": f"Reported 0 mg/l dissolved oxygen {critical_count} time(s) "
+                    "(team's own flag, not a CPCB limit)." if critical_count else None,
+    }
+
+
+def reason_text(parts: dict[str, str | None]) -> str:
+    """All reason sentences that apply, in a fixed order."""
+    text = " ".join(p for p in parts.values() if p)
+    return text or "No pre-immersion readings breached a limit."
+
+
+def short_reason(parts: dict[str, str | None], worsens: bool | None, poor: bool) -> str:
+    """One sentence for the ranked list: the one that matches the driver label."""
+    order = ["pair", "baseline"] if worsens and not poor else ["baseline", "pair"]
+    return next((parts[k] for k in order if parts[k]), reason_text(parts))

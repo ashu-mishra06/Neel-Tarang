@@ -91,6 +91,7 @@
         ]
       },
       "reason": "BOD breached its limit (at most 3 mg/l) in 4 of 4 pre-immersion readings; worst 6 mg/l (Durga 2024, Report 2024 p.25). Largest matched change during immersion: BOD 4.2 mg/l before to 13.2 mg/l during (Ganesh 2024, limit at most 3 mg/l; Report 2024 p.69). 2 breaching readings were not compared with an earlier reading in the same table: BOD 8 mg/l (Ganesh 2025 during, Report 2025 p.28; no valid pre-immersion reading in this table); Dissolved oxygen 0 mg/l (Ganesh 2025 during, Report 2025 p.28; no valid pre-immersion reading in this table). Reported 0 mg/l dissolved oxygen 4 time(s) (team's own flag, not a CPCB limit).",
+      "reason_short": "BOD breached its limit (at most 3 mg/l) in 4 of 4 pre-immersion readings; worst 6 mg/l (Durga 2024, Report 2024 p.25).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
@@ -361,6 +362,7 @@
       },
       "critical": null,
       "reason": "BOD breached its limit (at most 3 mg/l) in 6 of 6 pre-immersion readings; worst 6.8 mg/l (Durga 2025, Report 2025 p.65). Largest matched change during immersion: BOD 6.8 mg/l before to 11.4 mg/l during (Durga 2025, limit at most 3 mg/l; Report 2025 p.65).",
+      "reason_short": "Largest matched change during immersion: BOD 6.8 mg/l before to 11.4 mg/l during (Durga 2025, limit at most 3 mg/l; Report 2025 p.65).",
       "on_2026_list": false,
       "labels": [
         "Not on reported 2026 list - confirm with BMC"
@@ -682,6 +684,7 @@
       },
       "critical": null,
       "reason": "BOD breached its limit (at most 3 mg/l) in 5 of 6 pre-immersion readings; worst 6.8 mg/l (Durga 2025, Report 2025 p.64). Largest matched change during immersion: BOD 5.2 mg/l before to 10 mg/l during (Ganesh 2025, limit at most 3 mg/l; Report 2025 p.29).",
+      "reason_short": "Largest matched change during immersion: BOD 5.2 mg/l before to 10 mg/l during (Ganesh 2025, limit at most 3 mg/l; Report 2025 p.29).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
@@ -999,6 +1002,7 @@
       },
       "critical": null,
       "reason": "BOD breached its limit (at most 3 mg/l) in 6 of 6 pre-immersion readings; worst 6.8 mg/l (Durga 2025, Report 2025 p.64). Largest matched change during immersion: BOD 3.8 mg/l before to 6.9 mg/l during (Ganesh 2025, limit at most 3 mg/l; Report 2025 p.29).",
+      "reason_short": "BOD breached its limit (at most 3 mg/l) in 6 of 6 pre-immersion readings; worst 6.8 mg/l (Durga 2025, Report 2025 p.64).",
       "on_2026_list": false,
       "labels": [
         "Not on reported 2026 list - confirm with BMC",
@@ -1331,6 +1335,7 @@
       },
       "critical": null,
       "reason": "BOD breached its limit (at most 3 mg/l) in 3 of 4 pre-immersion readings; worst 6.8 mg/l (Durga 2024, Report 2024 p.26). Largest matched change during immersion: Dissolved oxygen 4.8 mg/l before to 3.8 mg/l during (Ganesh 2024, limit at least 5 mg/l; Report 2024 p.71). 2 breaching readings were not compared with an earlier reading in the same table: BOD 5.8 mg/l (Ganesh 2025 during, Report 2025 p.29; no valid pre-immersion reading in this table); Dissolved oxygen 0.6 mg/l (Ganesh 2025 during, Report 2025 p.29; no valid pre-immersion reading in this table).",
+      "reason_short": "Largest matched change during immersion: Dissolved oxygen 4.8 mg/l before to 3.8 mg/l during (Ganesh 2024, limit at least 5 mg/l; Report 2024 p.71).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
@@ -1600,6 +1605,7 @@
       },
       "critical": null,
       "reason": "BOD breached its limit (at most 3 mg/l) in 5 of 6 pre-immersion readings; worst 7.8 mg/l (Durga 2024, Report 2024 p.24). Largest matched change during immersion: Dissolved oxygen 6.6 mg/l before to 4.5 mg/l during (Durga 2024, limit at least 5 mg/l; Report 2024 p.24). 1 breaching reading was not compared with an earlier reading in the same table: BOD 7.8 mg/l (Durga 2023 after, Report 2023 p.59; no valid during-immersion reading in this table).",
+      "reason_short": "BOD breached its limit (at most 3 mg/l) in 5 of 6 pre-immersion readings; worst 7.8 mg/l (Durga 2024, Report 2024 p.24).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
@@ -1920,6 +1926,7 @@
       },
       "critical": null,
       "reason": "BOD breached its limit (at most 3 mg/l) in 3 of 5 pre-immersion readings; worst 4.8 mg/l (Ganesh 2025, Report 2025 p.28). Largest matched change during immersion: BOD 3.2 mg/l before to 6.8 mg/l during (Ganesh 2024, limit at most 3 mg/l; Report 2024 p.70).",
+      "reason_short": "BOD breached its limit (at most 3 mg/l) in 3 of 5 pre-immersion readings; worst 4.8 mg/l (Ganesh 2025, Report 2025 p.28).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [

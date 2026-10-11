@@ -21,7 +21,7 @@ from scoring.config import load_rules, repo_path
 from scoring.limits import Limit, evaluate_frame, limit_text, load_limits, worsen
 from scoring.loader import VALUE, load_readings
 from scoring.pairs import anchor_by_parameter, matched_pairs, unpaired_breaches, worsens
-from scoring.reasons import reason_text
+from scoring.reasons import reason_parts, reason_text, short_reason
 
 PHASES = ("pre", "during", "after")
 TIER_ORDER = {"High": 0, "Medium": 1, "Low": 2}
@@ -95,6 +95,7 @@ class GhatScore:
     confidence: Confidence
     critical: CriticalFlag | None
     reason: str
+    reason_short: str
     on_2026_list: bool
     labels: list[str] = field(default_factory=list)
     parameters: list[ParameterDetail] = field(default_factory=list)
@@ -394,8 +395,9 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
     details = parameter_details(g, triples, anchor, limits, rules)
     near, nearest = near_boundary(risk, rules)
     on_list = name in ctx["designated_sites"]
-    reason = reason_text(g, _top_baseline(details), pairs, unpaired,
+    parts = reason_parts(g, _top_baseline(details), pairs, unpaired,
                          critical.count if critical else 0, limits)
+    poor = base["score"] is not None and base["score"] >= rules["scoring"]["driver"]["baseline"]
     label = driver_for(base["score"], worse, tier, rules)
     uncertain, note = site_match(g)
     return GhatScore(
@@ -409,7 +411,8 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
         worsens_because=because, near_boundary=near, nearest_line=nearest,
         confidence=confidence_for(g, ctx["expected_tables"], ctx["latest_durga"],
                                   len(limits), rules, unpaired, uncertain),
-        critical=critical, reason=reason, on_2026_list=on_list,
+        critical=critical, reason=reason_text(parts),
+        reason_short=short_reason(parts, worse, poor), on_2026_list=on_list,
         labels=_labels(g, on_list), parameters=details, matched_pairs=pairs,
         unpaired_breaches=unpaired,
     )
