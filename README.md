@@ -1,20 +1,212 @@
 # Neel Tarang (नील तरंग)
 
-A tool for Track 2, Visarjan Ghat Watch. It shows which Bhopal immersion ghats need attention before **Durga visarjan
-(20 Oct 2026)**, and **why**: was the water already poor before immersion, or
-did it get worse during immersion? Every number links back to the MPPCB report
-page it came from. Missing data is shown as missing, never as clean.
+**Which Bhopal immersion ghats need attention before Durga visarjan, and why.**
 
-- **Track:** 2 (Visarjan Ghat Watch). Claude Impact Lab x Cerebras Cafe Compute, Bhopal, 11 Oct 2026
-- **Team:** : Secretos
-- **Members:** : Ashutosh Mishra
-- **The one user:** a Bhopal Municipal Corporation (BMC) officer planning Durga
-  visarjan, deciding where to send extra cleaning, aeration and water testing.
+Neel Tarang turns three years of water-test reports into one screen. A Bhopal
+Municipal Corporation (BMC) officer can see which ghats are most at risk, why
+(was the water already bad, or did immersion make it worse?), how sure we are,
+and the exact report page behind every number. It works in Hindi and English,
+with no internet and no login.
 
-> **Honesty note:** the persona and needs are inferred from the problem
-> statement, not from interviews.
+![Overview page](docs/screenshots/overview_en.png)
 
-## How to run (5 steps)
+- **Event:** Claude Impact Lab x Cerebras Cafe Compute, Bhopal, 11 Oct 2026, Track 2 (Visarjan Ghat Watch)
+- **Team:** Secretos · **Members:** Ashutosh Mishra
+- **The one user:** a BMC officer planning Durga visarjan (20 Oct 2026), deciding
+  where to send extra cleaning, aeration and water testing
+- **Repository:** https://github.com/ashu-mishra06/Neel-Tarang · **Licence:** MIT
+
+---
+
+## Contents
+
+1. [The problem](#1-the-problem)
+2. [Our idea](#2-our-idea)
+3. [What the app does](#3-what-the-app-does)
+4. [How it works](#4-how-it-works)
+5. [How the score is made](#5-how-the-score-is-made-simple-version)
+6. [What the data says today](#6-what-the-data-says-today)
+7. [App tour (screenshots)](#7-app-tour)
+8. [Tech stack](#8-tech-stack)
+9. [Folder structure](#9-folder-structure)
+10. [Run it yourself](#10-run-it-yourself)
+11. [Data sources](#11-data-sources)
+12. [Honest limits](#12-honest-limits)
+
+---
+
+## 1. The problem
+
+Every Ganesh and Durga festival, idols are immersed at ghats around Bhopal. The
+state pollution board (MPPCB) tests the water **before, during and one week
+after** immersion. But:
+
+- The results sit in **90-120 page PDF reports**, one per year.
+- Officers planning the next festival mostly decide **from memory**.
+- Gaps in the data (tests not done, tables missing) are easy to mistake for
+  "no problem".
+
+**Durga visarjan is on 20 Oct 2026.** The officer needs to know quickly where to
+send extra cleaning, aeration and water testing, and must be able to defend that
+choice.
+
+## 2. Our idea
+
+> **Rank ghats by _why_ they are at risk, not just _how much_.**
+
+Each ghat's risk is split into two parts, because each part needs a different
+action:
+
+| Part | What it means | What it suggests |
+|---|---|---|
+| **Before immersion (baseline)** | The water already breaks the bathing-water limits before any idols arrive | A lake or kund problem: long-term attention |
+| **Worse during immersion (festival effect)** | The water gets worse during or after immersion compared with before | Aeration, cleaning and testing on the day |
+
+Every ghat also gets a **confidence** rating. Missing tests lower confidence;
+they are **never counted as clean**.
+
+## 3. What the app does
+
+| Section | What you get |
+|---|---|
+| **Overview** | Four summary numbers, a chart of why each ghat ranks where it does, the top 3, a ranked table, a detail view for any ghat, and the main data gaps |
+| **Ghat detail** | Before-vs-during charts against the legal limit, all the numbers, every reading with its **report page image**, and that ghat's gaps |
+| **Test planner** | "I can test N ghats before 20 Oct": an ordered list (high risk and thin data first) with reasons |
+| **Brief** | A one-page brief in Hindi (reviewed by the team) and English, to copy into a message or download |
+| **Add readings** | Upload new test results (same CSV columns); every ghat is re-scored and a "what changed" table appears. Report values are never overwritten |
+| **Gaps & method** | Everything the data does not cover, the full method, and downloads of all derived data |
+
+## 4. How it works
+
+```mermaid
+flowchart LR
+    A["MPPCB reports<br/>2023-2025 (PDF)"] --> B["Organisers' CSV<br/>1,524 readings, 7 ghats"]
+    B --> C["Loader<br/>value / not sampled / below detection"]
+    D["CPCB class B limits<br/>pH 6.5-8.5, DO ≥ 5, BOD ≤ 3"] --> E
+    C --> E["Scoring engine<br/>baseline + festival effect<br/>+ confidence"]
+    E --> F["Evidence<br/>every number → report page"]
+    E --> G["Gap register<br/>what is missing"]
+    E --> H["Streamlit app<br/>Hindi / English"]
+    F --> H
+    G --> H
+    H --> I["Officer: ranked list,<br/>planner, brief"]
+    J["New readings (CSV)"] -.->|re-score| E
+```
+
+- **No AI makes up numbers.** Every number comes from the scoring code in
+  `scoring/`. The Hindi and English briefs are filled from the same numbers by
+  templates, and a test checks that they match.
+- **Everything is traceable.** Each reading links to the public report PDF at
+  the exact page, and the app shows the page image.
+
+## 5. How the score is made (simple version)
+
+We use the CPCB "class B" (outdoor bathing) limits for three tests:
+
+| Test | Limit | Bad when |
+|---|---|---|
+| pH | 6.5 to 8.5 | outside the range |
+| Dissolved oxygen (DO) | at least 5 mg/l | lower |
+| BOD | at most 3 mg/l | higher |
+
+1. **Baseline (0-1):** how often, and by how much, the *before-immersion*
+   readings break the limits.
+2. **Festival effect (0-1):** for each report table, how much worse the reading
+   got from *before* to *during* (and one week *after*). The worst test decides.
+3. **Risk score = 100 x (half baseline + half festival effect).**
+4. **Tier:** High (27.5 or more), Medium (20 or more), Low (below 20). A
+   reported DO of 0 mg/l always means at least High (our own safety flag, not
+   a CPCB rule).
+5. **Confidence:** the share of expected readings that actually exist. It drops
+   for missing tables, uncertain site names, and breaches that cannot be
+   compared.
+
+All weights and cut-offs live in [`rules.yaml`](rules.yaml), and every decision
+is explained in [`docs/METHOD.md`](docs/METHOD.md).
+
+## 6. What the data says today
+
+Risk score per ghat (0-100). The full bar is the risk score; the lower,
+overlaid bar is the part that comes from **before immersion**. The rest is the
+**festival effect**.
+
+```mermaid
+xychart-beta
+    title "Risk score by ghat (full bar) and its before-immersion part (inner bar)"
+    x-axis ["Bairagarh", "Shahpura", "Hathaikheda", "Rani Kamlapati", "Malikhedi", "Khatlapura", "Prempura"]
+    y-axis "Risk score" 0 --> 50
+    bar [46.7, 46.2, 45.3, 33.5, 26.7, 25.1, 20.3]
+    bar [20.5, 19.4, 14.6, 17.6, 19.2, 15.5, 7.8]
+```
+
+| Rank | Ghat | Tier | Why | Confidence | Risk |
+|---|---|---|---|---|---|
+| 1 | Bairagarh (Sant Hirdaram) kund | High | Poor before and worse during | Low (72%) | 46.7 |
+| 2 | Shahpura lake ghat | High | Worsens with immersion | High (100%) | 46.2 |
+| 3 | Hathaikheda dam / kund | High | Worsens with immersion | High (100%) | 45.3 |
+| 4 | Rani Kamlapati ghat / Kamla Park kund | High | Elevated on several measures; no single large change | Medium (100%) | 33.5 |
+| 5 | Malikhedi kund | Medium | Worsens with immersion | Low (72%) | 26.7 |
+| 6 | Khatlapura ghat | Medium | Elevated on several measures; no single large change | Medium (98%) | 25.1 |
+| 7 | Prempura ghat | Medium | Elevated on several measures; no single large change | High (93%) | 20.3 |
+
+**Arch Bridge** is on the 2026 list but has **no past readings**, so it gets no
+score; any test there is new information.
+
+Tiers show relative concern among these 7 ghats. They are **not a safety
+certification**, and the app draws no health conclusions.
+
+## 7. App tour
+
+| | |
+|---|---|
+| **Overview (Hindi, the default)** ![Overview in Hindi](docs/screenshots/overview_hi.png) | **Ranked ghats table** ![Ranked table](docs/screenshots/ranked_table.png) |
+| **Ghat detail: before vs during against the limit** ![Ghat detail](docs/screenshots/ghat_detail.png) | **Test planner** ![Test planner](docs/screenshots/planner.png) |
+| **Brief in Hindi** ![Hindi brief](docs/screenshots/brief_hi.png) | **Add readings: re-score and see what changed** (sample file with invented values) ![Add readings](docs/screenshots/add_readings.png) |
+
+## 8. Tech stack
+
+| Tool | Used for |
+|---|---|
+| **Python 3.11+** | Everything: engine, app, tests |
+| **pandas** | Reading and grouping the readings |
+| **PyYAML** | `rules.yaml`: limits, weights, cut-offs, readable by non-coders |
+| **Streamlit 1.50** | The web app (sidebar navigation, charts, upload) |
+| **Vega-Lite** (via Streamlit) | Bar and before/during charts |
+| **PyMuPDF** | Showing the cited report page as an image |
+| **Jinja2** | Filling the Hindi and English brief templates |
+| **pytest** and **ruff** | 254 tests and linting |
+| **Material Symbols** (bundled with Streamlit) | Navigation icons, which work offline |
+
+No database, no login, no API key, no internet needed.
+
+## 9. Folder structure
+
+```text
+Neel-Tarang/
+├── app.py                  # The Streamlit app: 5 sections, sidebar navigation
+├── rules.yaml              # All limits, weights and cut-offs (edit here, not in code)
+├── requirements.txt        # Pinned Python packages
+├── scoring/                # The engine (no Streamlit in here)
+│   ├── loader.py           #   read CSV; value / not sampled / below detection
+│   ├── limits.py           #   CPCB class B limits, breach and exceedance
+│   ├── engine.py           #   baseline, festival effect, risk, tier, confidence, ranking
+│   ├── pairs.py            #   matched before/during pairs, unpaired breaches
+│   ├── reasons.py          #   plain-words reasons with report pages
+│   ├── evidence.py         #   every reading → report link + page image
+│   ├── gaps.py             #   gap register (what the data does not cover)
+│   ├── persistence.py      #   "breached in X of Y tables"
+│   ├── planner.py          #   test planner order
+│   ├── brief.py            #   Hindi / English brief
+│   └── rescore.py          #   upload validation and re-scoring
+├── ui/                     # Look and feel (components, charts, Hindi strings, logo)
+├── briefs/                 # Brief templates (en.j2, hi.j2), glossary, Hindi review status
+├── data/                   # Organisers' files (unchanged) + context/, derived/, samples/
+├── resources/              # The MPPCB report PDFs
+├── docs/                   # METHOD.md (method, gaps, verification), DESIGN.md, screenshots/
+└── tests/                  # 254 tests: golden numbers, honesty, evidence, UI, upload
+```
+
+## 10. Run it yourself
 
 ```bash
 git clone https://github.com/ashu-mishra06/Neel-Tarang.git
@@ -24,107 +216,48 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-No API key, no network and no setup screen are needed. Tested on Python 3.14
-(Windows); `requirements.txt` is pinned.
+- Run the tests: `pytest` (254 tests). Print the ranking in a terminal:
+  `python -m scoring.engine`.
+- **Deploy (Streamlit Community Cloud):** New app → this repo, branch `main`,
+  file `app.py`, Python 3.12. No secrets are needed.
 
-Run the tests with `pytest` (252 tests). Print the ranking in a terminal with
-`python -m scoring.engine`.
+## 11. Data sources
 
-## What the officer sees
+- **MPPCB Ganesh and Durga visarjan reports 2023, 2024, 2025** (public PDFs,
+  in `resources/`; links in [`data/DATA_DICTIONARY.md`](data/DATA_DICTIONARY.md)).
+- **Organisers' CSV** `data/bhopal_ghats_2023_2025.csv`: 1,524 readings, 7
+  ghats, kept **unchanged**.
+- **CPCB water quality criteria** `data/cpcb_water_quality_criteria.csv`.
+- **2026 ghat lists** (`data/context/designated_ghats_2026.csv`):
+  - Free Press Journal, 22 Sep 2026: [BMC Deploys 174 Divers At Bhopal Ghats For Ganesh Idol Immersion](https://www.freepressjournal.in/bhopal/bmc-deploys-174-divers-at-bhopal-ghats-for-ganesh-idol-immersion) (designated list).
+  - Free Press Journal, 24 Sep 2026: [Nearly 30 Ganpati Collection Stalls Set Up...](https://www.freepressjournal.in/bhopal/bhopal-ganesh-visarjan-2026-nearly-30-ganpati-collection-stalls-set-up-180-divers-deployed-khatlapura-ghat-prempura-ghat-ready-ahead-of-anant-chaturdashi) (adds Shahpura and Rani Kamlapati as in use).
+- The statewide file `mp_immersion_sites_2023_2025.csv` is **not used**. It was
+  planned only as a less-checked context benchmark, which was cut.
 
-The app opens in **Hindi**; the **English** toggle sits top-right. A top
-navigation bar splits it into five sections: **Ghats** (landing page) · **Test
-planner** · **Brief** · **Add readings** · **Gaps & method**. The Ghats page
-starts with summary cards and a chart of *why* each ghat ranks where it does
-(before immersion vs worse during immersion).
+## 12. Honest limits
 
-1. **Ranked ghats:** rank, tier (icon + text + colour), driver ("why"),
-   confidence, and a one-line reason with its report page. Flags on the row:
-   near a tier line, site name may be two places, reported 0 mg/l dissolved
-   oxygen, breaches that cannot be compared, not on the reported 2026 list.
-   Open a row for the detail view: baseline vs festival numbers, per-parameter
-   values, matched before/during pairs, every reading with the report page
-   image, missing items and the gaps for that ghat.
-   Each row carries a persistence badge, e.g. "BOD above limit during
-   immersion in 6 of 6 tables". The detail view has before/during charts per
-   parameter against the CPCB limit.
-2. **Test planner:** "I can test N ghats before 20 Oct" gives an ordered list
-   (high risk and thin data first), with reasons and what the data suggests
-   testing. Arch Bridge is listed separately as "No baseline".
-3. **No baseline:** Arch Bridge (on the reported 2026 list, no past readings).
-   No score and no tier.
-4. **Brief (हिन्दी / EN):** a one-page brief with copy and download (text or
-   print-ready HTML). The Hindi brief has been reviewed by the team.
-5. **Re-score (week after, Add readings):** upload new readings in the same CSV columns
-   (sample with invented values in `data/samples/`). The ranking updates, a
-   "what changed" table shows rank/tier/score before -> after, and uploaded
-   rows are marked "user-supplied". Bad files get a plain list of problems.
-6. **Gaps & method:** the gap register, the method note (`docs/METHOD.md`) and
-   downloads of the derived data (scores JSON, gap register, evidence CSV).
+**What works:** scoring, evidence links (all 1,476 printed values were found on
+their cited PDF pages), gap register, Hindi/English interface, brief, test
+planner, persistence badge, re-scoring with uploaded readings, 254 passing tests.
 
-## What works and what doesn't
+**What to keep in mind:**
+- **Units are assumed.** The reports print none.
+- **Only 4 metals were tested**, and none has a bathing-water limit, so metals are
+  shown but not scored.
+- **Past readings come from lake-side ghats**, while 2026 immersion uses kunds.
+- The 2026 lists are for **Ganesh**; the **Durga list may differ** (confirm with BMC).
+- **Rani Kamlapati / Kamla Park** may be two different places; it is kept as one and
+  marked.
+- The **Hindi brief is reviewed** by the team; the Hindi **interface** text is still a
+  draft.
+- **Not done yet:** a human check of 10 evidence rows (listed in `docs/METHOD.md`),
+  and a usability test with a non-technical user.
+- The user persona comes from the problem statement, **not from interviews**.
 
-**Works**
-- Scoring engine (`scoring/`) with baseline vs festival split, confidence,
-  matched-pair driver labels and blind spots. All settings are in
-  `rules.yaml`.
-- The golden counts reproduce: DO 116 valid / 42 below 5 mg/l; BOD 112 valid
-  / 100 above 3 mg/l.
-- Every printed value (1,476) was found on its cited PDF page (automated
-  check). Five page images were checked by eye.
-- Re-score with uploaded readings, with validation and a "what changed" table.
-- The English brief and Hindi draft are generated from the same engine
-  numbers. A test checks that the numbers are identical.
-- Numbers come only from `scoring/`. No LLM is used at run time.
+**Not included (cut for time):** share card image (7C), statewide benchmark (7D),
+lake cross-check, map view, "ask the data" box, PDF export of the brief.
 
-**Doesn't / not yet**
-- The Hindi *interface* text is a draft. The Hindi brief is reviewed; the brief's new
-  persistence line needs a quick re-check (`briefs/hi_review_status.md`).
-- The human spot-check of 10 evidence rows (N2) is pending; see
-  `docs/METHOD.md`.
-- The usability test with a non-technical teammate has not been run.
-- The driver label "Already poor before immersion" uses the uncalibrated
-  0.40 baseline cut-off from the brief; no ghat currently gets it.
-- Report links point to the public MPPCB PDFs. They were checked against the
-  local copies in `resources/`, not opened online.
-- The 2026 ghat lists come from press reports (FPJ 22 and 24 Sep 2026), both
-  for Ganesh. The Durga list may differ (confirm with BMC).
+---
 
-## Data
-
-- `data/`: the organisers' files, **unchanged** (byte-for-byte; see
-  `.gitattributes`). Source PDFs are in `resources/`. Links are in
-  `data/DATA_DICTIONARY.md`.
-- `data/context/designated_ghats_2026.csv`: the Ganesh 2026 designated ghats
-  as reported by Free Press Journal on 22 Sep 2026: [BMC Deploys 174 Divers At Bhopal Ghats For Ganesh Idol Immersion](https://www.freepressjournal.in/bhopal/bmc-deploys-174-divers-at-bhopal-ghats-for-ganesh-idol-immersion).
-  A second report (FPJ 24 Sep 2026,
-  [Nearly 30 Ganpati Collection Stalls Set Up...](https://www.freepressjournal.in/bhopal/bhopal-ganesh-visarjan-2026-nearly-30-ganpati-collection-stalls-set-up-180-divers-deployed-khatlapura-ghat-prempura-ghat-ready-ahead-of-anant-chaturdashi))
-  lists Shahpura and Rani Kamlapati as in use. Context only: used for the
-  "No baseline" section and the 2026-list labels.
-- `data/mp_immersion_sites_2023_2025.csv` (statewide): **not used**. It was
-  planned as a less-checked context benchmark only (Level 7D, cut).
-- Derived output is in `data/derived/`: `ghat_scores.json`, `evidence.csv`,
-  `gap_register.json`; page images are cached in `pages/` and not committed.
-
-## Not included
-
-- **Level 7 enhancements cut for time:** 7C share card (text + image) and 7D
-  statewide benchmark. 7A persistence badge and 7B test planner are included.
-- **Level 9 stretch:** lake cross-check, map view, "ask the data" box.
-- **PDF export of the brief:** the brief is print-ready HTML and plain text.
-- **Embedded Noto Sans Devanagari font:** the Hindi HTML uses system fonts
-  (Noto Sans Devanagari / Nirmala UI / Mangal if installed).
-
-## Deploy (Streamlit Community Cloud)
-
-1. The repo is public: https://github.com/ashu-mishra06/Neel-Tarang
-2. On share.streamlit.io: New app -> pick the repo, branch, and `app.py`.
-3. Advanced settings: Python 3.12. No secrets are needed.
-4. Open the link on a phone and check that the ranked list loads.
-
-The app needs nothing beyond `requirements.txt`. Page images are rendered from
-the PDFs in `resources/` on first view.
-
-## Licence
-
-MIT. See `LICENSE`. Offered to the Government of Madhya Pradesh through MPSeDC.
+MIT licence. See [`LICENSE`](LICENSE). Offered to the Government of Madhya
+Pradesh through MPSeDC.
