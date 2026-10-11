@@ -56,3 +56,31 @@ scored_parameters:
     high: 3.0
     scale: 3.0
     unit: mg/l
+
+# 2026 designated ghats (context only; used for blind spots and labels).
+designated_ghats_csv: data/context/designated_ghats_2026.csv
+scores_json: data/derived/ghat_scores.json
+
+# Scoring (Appendix A). Every number the engine uses is here.
+scoring:
+  # baseline = breach_rate * w + mean_exceedance * w   (pre-immersion readings only)
+  baseline_weights: {breach_rate: 0.5, mean_exceedance: 0.5}
+  # festival effect per festival-year-parameter: worsening pre->during and pre->after
+  festival_weights: {during: 0.7, after: 0.3}
+  # risk = 100 * (baseline * w + festival * w)
+  risk_weights: {baseline: 0.5, festival: 0.5}
+  # Tier cut-offs on the 0-100 risk score: High >= high; Medium >= medium; else Low.
+  # Calibrated in Level 2 (placeholders 60/35 put all 7 ghats in Low; observed
+  # range 13.9-33.6). Anchored to the driver cut-offs, not fitted to the scores:
+  #   high   27.5 = 100 * (0.5 * 0.40 + 0.5 * 0.15)  -> "poor before" AND "worsens" levels
+  #   medium 20.0 = 100 * (0.5 * 0.40)               -> "poor before" level alone
+  # See docs/METHOD.md (D1).
+  tiers: {high: 27.5, medium: 20}
+  # Team's own flag (not a CPCB limit): any reported DO of exactly this value.
+  critical: {parameter: Dissolved oxygen, value: 0, tier_floor: High}
+  # Driver label cut-offs (0-1 scale).
+  driver: {baseline: 0.40, festival: 0.15}
+  # Confidence = valid scored readings / expected scored readings.
+  confidence: {high: 0.90, medium: 0.70}
+  # If the most recent Durga table is absent, confidence is at most this.
+  latest_durga_missing_cap: Medium

@@ -102,6 +102,32 @@ def evaluate(parameter: str, value: float, limits: dict[str, Limit] | None = Non
     return {"breach": distance > 0, "exceedance": min(distance / limit.scale, 1.0)}
 
 
+def worsen(limit: Limit, pre: float, later: float) -> float:
+    """How much a reading got worse from pre to a later phase, clipped to 0..1.
+
+    DO: (pre - later) / 5.  BOD: (later - pre) / 3.
+    pH: (distance outside range later - distance outside range pre) / 1.5.
+    Improvement scores 0.
+    """
+    if limit.rule == "min":
+        change = pre - later
+    elif limit.rule == "max":
+        change = later - pre
+    else:
+        change = limit.distance_outside(later) - limit.distance_outside(pre)
+    return min(max(change / limit.scale, 0.0), 1.0)
+
+
+def limit_text(limit: Limit) -> str:
+    """Plain-words limit, e.g. "at least 5 mg/l" or "6.5 to 8.5"."""
+    unit = f" {limit.unit}" if limit.unit else ""
+    if limit.rule == "min":
+        return f"at least {limit.low:g}{unit}"
+    if limit.rule == "max":
+        return f"at most {limit.high:g}{unit}"
+    return f"{limit.low:g} to {limit.high:g}{unit}"
+
+
 def evaluate_frame(df: pd.DataFrame, limits: dict[str, Limit] | None = None) -> pd.DataFrame:
     """Add `breach` (True/False/NA) and `exceedance` columns for scored rows.
 
@@ -109,11 +135,16 @@ def evaluate_frame(df: pd.DataFrame, limits: dict[str, Limit] | None = None) -> 
     """
     limits = limits or limits_from_rules()
     out = df.copy()
-    out["breach"] = pd.Series(pd.NA, index=out.index, dtype="boolean")
-    out["exceedance"] = float("nan")
-    scored = (out["status"] == VALUE) & out["parameter"].isin(limits)
-    for idx in out.index[scored]:
-        result = evaluate(out.at[idx, "parameter"], out.at[idx, "value_num"], limits)
-        out.at[idx, "breach"] = result["breach"]
-        out.at[idx, "exceedance"] = result["exceedance"]
+    breach: list[bool | None] = []
+    exceedance: list[float] = []
+    for param, status, value in zip(out["parameter"], out["status"], out["value_num"], strict=True):
+        if status == VALUE and param in limits:
+            result = evaluate(param, value, limits)
+            breach.append(result["breach"])
+            exceedance.append(result["exceedance"])
+        else:
+            breach.append(None)
+            exceedance.append(float("nan"))
+    out["breach"] = pd.array(breach, dtype="boolean")
+    out["exceedance"] = exceedance
     return out

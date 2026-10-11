@@ -1,0 +1,533 @@
+{
+  "ranked": [
+    {
+      "ghat": "Bairagarh (Sant Hirdaram) kund",
+      "water_body": "Upper Lake",
+      "rank": 1,
+      "risk_score": 33.6222,
+      "baseline": 0.4094,
+      "festival": 0.263,
+      "breach_rate_pre": 0.5,
+      "mean_exceedance_pre": 0.3189,
+      "pre_valid": 12,
+      "festival_triples": 12,
+      "tier": "High",
+      "tier_from_score": "High",
+      "driver": "Poor before and worse during",
+      "confidence": {
+        "level": "Medium",
+        "coverage": 0.7222,
+        "valid": 39,
+        "expected": 54,
+        "capped": false,
+        "missing_items": [
+          "no Durga 2025 table",
+          "BOD, Ganesh 2025 after: not sampled",
+          "Dissolved oxygen, Ganesh 2025 after: not sampled",
+          "pH, Ganesh 2025 after: **",
+          "BOD, Ganesh 2025 pre: not sampled",
+          "Dissolved oxygen, Ganesh 2025 pre: not sampled",
+          "pH, Ganesh 2025 pre: *"
+        ]
+      },
+      "critical": {
+        "count": 4,
+        "note": "Reported 0 mg/l dissolved oxygen 4 time(s). This is the team's own flag, not a CPCB limit.",
+        "readings": [
+          {
+            "year": "2023",
+            "festival": "Durga",
+            "phase": "during",
+            "source_page": "60"
+          },
+          {
+            "year": "2023",
+            "festival": "Durga",
+            "phase": "pre",
+            "source_page": "60"
+          },
+          {
+            "year": "2023",
+            "festival": "Ganesh",
+            "phase": "after",
+            "source_page": "26"
+          },
+          {
+            "year": "2025",
+            "festival": "Ganesh",
+            "phase": "during",
+            "source_page": "28"
+          }
+        ]
+      },
+      "reason": "BOD averaged 5.8 mg/l before immersion (limit: at most 3 mg/l) and 8.5 during. Reported 0 mg/l dissolved oxygen 4 time(s) (team's own flag). Source: Report 2025 p.28.",
+      "on_2026_list": true,
+      "labels": [],
+      "parameters": [
+        {
+          "parameter": "pH",
+          "limit": "6.5 to 8.5",
+          "pre_mean": 7.3325,
+          "during_mean": 7.302,
+          "pre_valid": 4,
+          "pre_breaches": 0,
+          "baseline": 0.0,
+          "festival": 0.0,
+          "festival_triples": 4
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "limit": "at least 5 mg/l",
+          "pre_mean": 3.75,
+          "during_mean": 2.16,
+          "pre_valid": 4,
+          "pre_breaches": 2,
+          "baseline": 0.395,
+          "festival": 0.264,
+          "festival_triples": 4
+        },
+        {
+          "parameter": "BOD",
+          "limit": "at most 3 mg/l",
+          "pre_mean": 5.8,
+          "during_mean": 8.48,
+          "pre_valid": 4,
+          "pre_breaches": 4,
+          "baseline": 0.8333,
+          "festival": 0.525,
+          "festival_triples": 4
+        }
+      ]
+    },
+    {
+      "ghat": "Shahpura lake ghat",
+      "water_body": "Shahpura Lake",
+      "rank": 2,
+      "risk_score": 30.8463,
+      "baseline": 0.387,
+      "festival": 0.2299,
+      "breach_rate_pre": 0.4444,
+      "mean_exceedance_pre": 0.3296,
+      "pre_valid": 18,
+      "festival_triples": 18,
+      "tier": "High",
+      "tier_from_score": "High",
+      "driver": "Worsens with immersion",
+      "confidence": {
+        "level": "High",
+        "coverage": 1.0,
+        "valid": 54,
+        "expected": 54,
+        "capped": false,
+        "missing_items": []
+      },
+      "critical": null,
+      "reason": "BOD averaged 6.7 mg/l before immersion (limit: at most 3 mg/l) and 8.8 during. Source: Report 2025 p.65.",
+      "on_2026_list": false,
+      "labels": [
+        "Not on reported 2026 list - confirm with BMC"
+      ],
+      "parameters": [
+        {
+          "parameter": "pH",
+          "limit": "6.5 to 8.5",
+          "pre_mean": 7.5817,
+          "during_mean": 7.5383,
+          "pre_valid": 6,
+          "pre_breaches": 0,
+          "baseline": 0.0,
+          "festival": 0.0,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "limit": "at least 5 mg/l",
+          "pre_mean": 5.6833,
+          "during_mean": 5.0333,
+          "pre_valid": 6,
+          "pre_breaches": 2,
+          "baseline": 0.2167,
+          "festival": 0.153,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "BOD",
+          "limit": "at most 3 mg/l",
+          "pre_mean": 6.7333,
+          "during_mean": 8.8,
+          "pre_valid": 6,
+          "pre_breaches": 6,
+          "baseline": 0.9444,
+          "festival": 0.5367,
+          "festival_triples": 6
+        }
+      ]
+    },
+    {
+      "ghat": "Hathaikheda dam / kund",
+      "water_body": "Hathaikheda dam",
+      "rank": 3,
+      "risk_score": 29.6519,
+      "baseline": 0.2926,
+      "festival": 0.3004,
+      "breach_rate_pre": 0.3333,
+      "mean_exceedance_pre": 0.2519,
+      "pre_valid": 18,
+      "festival_triples": 18,
+      "tier": "High",
+      "tier_from_score": "High",
+      "driver": "Worsens with immersion",
+      "confidence": {
+        "level": "High",
+        "coverage": 1.0,
+        "valid": 54,
+        "expected": 54,
+        "capped": false,
+        "missing_items": []
+      },
+      "critical": null,
+      "reason": "BOD averaged 5.5 mg/l before immersion (limit: at most 3 mg/l) and 8.4 during. Source: Report 2025 p.29.",
+      "on_2026_list": true,
+      "labels": [],
+      "parameters": [
+        {
+          "parameter": "pH",
+          "limit": "6.5 to 8.5",
+          "pre_mean": 8.27,
+          "during_mean": 8.1683,
+          "pre_valid": 6,
+          "pre_breaches": 1,
+          "baseline": 0.1222,
+          "festival": 0.049,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "limit": "at least 5 mg/l",
+          "pre_mean": 7.6833,
+          "during_mean": 7.2333,
+          "pre_valid": 6,
+          "pre_breaches": 0,
+          "baseline": 0.0,
+          "festival": 0.239,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "BOD",
+          "limit": "at most 3 mg/l",
+          "pre_mean": 5.5167,
+          "during_mean": 8.4,
+          "pre_valid": 6,
+          "pre_breaches": 5,
+          "baseline": 0.7556,
+          "festival": 0.6133,
+          "festival_triples": 6
+        }
+      ]
+    },
+    {
+      "ghat": "Rani Kamlapati ghat / Kamla Park kund",
+      "water_body": "Lower Lake (as printed in Durga tables)",
+      "rank": 4,
+      "risk_score": 24.4315,
+      "baseline": 0.352,
+      "festival": 0.1366,
+      "breach_rate_pre": 0.4444,
+      "mean_exceedance_pre": 0.2596,
+      "pre_valid": 18,
+      "festival_triples": 18,
+      "tier": "Medium",
+      "tier_from_score": "Medium",
+      "driver": "Lower concern on available data",
+      "confidence": {
+        "level": "High",
+        "coverage": 1.0,
+        "valid": 54,
+        "expected": 54,
+        "capped": false,
+        "missing_items": []
+      },
+      "critical": null,
+      "reason": "BOD averaged 5.7 mg/l before immersion (limit: at most 3 mg/l) and 6.5 during. Source: Report 2025 p.29.",
+      "on_2026_list": false,
+      "labels": [
+        "Not on reported 2026 list - confirm with BMC",
+        "Site name match is medium confidence - may cover two places"
+      ],
+      "parameters": [
+        {
+          "parameter": "pH",
+          "limit": "6.5 to 8.5",
+          "pre_mean": 7.655,
+          "during_mean": 7.7567,
+          "pre_valid": 6,
+          "pre_breaches": 0,
+          "baseline": 0.0,
+          "festival": 0.0,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "limit": "at least 5 mg/l",
+          "pre_mean": 5.75,
+          "during_mean": 5.3,
+          "pre_valid": 6,
+          "pre_breaches": 2,
+          "baseline": 0.2117,
+          "festival": 0.092,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "BOD",
+          "limit": "at most 3 mg/l",
+          "pre_mean": 5.6667,
+          "during_mean": 6.55,
+          "pre_valid": 6,
+          "pre_breaches": 6,
+          "baseline": 0.8444,
+          "festival": 0.3178,
+          "festival_triples": 6
+        }
+      ]
+    },
+    {
+      "ghat": "Malikhedi kund",
+      "water_body": "Kund",
+      "rank": 5,
+      "risk_score": 24.0806,
+      "baseline": 0.3842,
+      "festival": 0.0974,
+      "breach_rate_pre": 0.5,
+      "mean_exceedance_pre": 0.2683,
+      "pre_valid": 12,
+      "festival_triples": 12,
+      "tier": "Medium",
+      "tier_from_score": "Medium",
+      "driver": "Lower concern on available data",
+      "confidence": {
+        "level": "Medium",
+        "coverage": 0.7222,
+        "valid": 39,
+        "expected": 54,
+        "capped": false,
+        "missing_items": [
+          "no Durga 2025 table",
+          "BOD, Ganesh 2025 after: not sampled",
+          "Dissolved oxygen, Ganesh 2025 after: not sampled",
+          "pH, Ganesh 2025 after: **",
+          "BOD, Ganesh 2025 pre: not sampled",
+          "Dissolved oxygen, Ganesh 2025 pre: not sampled",
+          "pH, Ganesh 2025 pre: *"
+        ]
+      },
+      "critical": null,
+      "reason": "BOD averaged 5.4 mg/l before immersion (limit: at most 3 mg/l) and 5.2 during. Dissolved oxygen averaged 5.4 mg/l before immersion (limit: at least 5 mg/l) and 4.0 during. Source: Report 2024 p.26.",
+      "on_2026_list": true,
+      "labels": [],
+      "parameters": [
+        {
+          "parameter": "pH",
+          "limit": "6.5 to 8.5",
+          "pre_mean": 7.4975,
+          "during_mean": 7.478,
+          "pre_valid": 4,
+          "pre_breaches": 0,
+          "baseline": 0.0,
+          "festival": 0.0,
+          "festival_triples": 4
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "limit": "at least 5 mg/l",
+          "pre_mean": 5.35,
+          "during_mean": 3.96,
+          "pre_valid": 4,
+          "pre_breaches": 3,
+          "baseline": 0.4025,
+          "festival": 0.149,
+          "festival_triples": 4
+        },
+        {
+          "parameter": "BOD",
+          "limit": "at most 3 mg/l",
+          "pre_mean": 5.45,
+          "during_mean": 5.24,
+          "pre_valid": 4,
+          "pre_breaches": 3,
+          "baseline": 0.75,
+          "festival": 0.1433,
+          "festival_triples": 4
+        }
+      ]
+    },
+    {
+      "ghat": "Khatlapura ghat",
+      "water_body": "Lower Lake",
+      "rank": 6,
+      "risk_score": 21.1126,
+      "baseline": 0.3104,
+      "festival": 0.1119,
+      "breach_rate_pre": 0.3889,
+      "mean_exceedance_pre": 0.2319,
+      "pre_valid": 18,
+      "festival_triples": 17,
+      "tier": "Medium",
+      "tier_from_score": "Medium",
+      "driver": "Lower concern on available data",
+      "confidence": {
+        "level": "High",
+        "coverage": 0.9815,
+        "valid": 53,
+        "expected": 54,
+        "capped": false,
+        "missing_items": [
+          "BOD, Durga 2023 during: not sampled"
+        ]
+      },
+      "critical": null,
+      "reason": "BOD averaged 5.4 mg/l before immersion (limit: at most 3 mg/l) and 5.6 during. Source: Report 2024 p.24.",
+      "on_2026_list": true,
+      "labels": [],
+      "parameters": [
+        {
+          "parameter": "pH",
+          "limit": "6.5 to 8.5",
+          "pre_mean": 7.7383,
+          "during_mean": 7.6017,
+          "pre_valid": 6,
+          "pre_breaches": 0,
+          "baseline": 0.0,
+          "festival": 0.0008,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "limit": "at least 5 mg/l",
+          "pre_mean": 6.0333,
+          "during_mean": 5.1667,
+          "pre_valid": 6,
+          "pre_breaches": 2,
+          "baseline": 0.1867,
+          "festival": 0.1573,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "BOD",
+          "limit": "at most 3 mg/l",
+          "pre_mean": 5.3667,
+          "during_mean": 5.6,
+          "pre_valid": 6,
+          "pre_breaches": 5,
+          "baseline": 0.7444,
+          "festival": 0.1907,
+          "festival_triples": 5
+        }
+      ]
+    },
+    {
+      "ghat": "Prempura ghat",
+      "water_body": "Upper Lake",
+      "rank": 7,
+      "risk_score": 13.9049,
+      "baseline": 0.1551,
+      "festival": 0.123,
+      "breach_rate_pre": 0.2353,
+      "mean_exceedance_pre": 0.0749,
+      "pre_valid": 17,
+      "festival_triples": 16,
+      "tier": "Low",
+      "tier_from_score": "Low",
+      "driver": "Lower concern on available data",
+      "confidence": {
+        "level": "High",
+        "coverage": 0.9259,
+        "valid": 50,
+        "expected": 54,
+        "capped": false,
+        "missing_items": [
+          "BOD, Durga 2023 after: not sampled",
+          "BOD, Durga 2023 during: not sampled",
+          "pH, Durga 2023 during: not sampled",
+          "BOD, Durga 2023 pre: not sampled"
+        ]
+      },
+      "critical": null,
+      "reason": "BOD averaged 3.2 mg/l before immersion (limit: at most 3 mg/l) and 4.1 during. Source: Report 2024 p.70.",
+      "on_2026_list": true,
+      "labels": [],
+      "parameters": [
+        {
+          "parameter": "pH",
+          "limit": "6.5 to 8.5",
+          "pre_mean": 7.88,
+          "during_mean": 8.27,
+          "pre_valid": 6,
+          "pre_breaches": 0,
+          "baseline": 0.0,
+          "festival": 0.0075,
+          "festival_triples": 5
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "limit": "at least 5 mg/l",
+          "pre_mean": 6.1,
+          "during_mean": 5.4167,
+          "pre_valid": 6,
+          "pre_breaches": 1,
+          "baseline": 0.095,
+          "festival": 0.1123,
+          "festival_triples": 6
+        },
+        {
+          "parameter": "BOD",
+          "limit": "at most 3 mg/l",
+          "pre_mean": 3.22,
+          "during_mean": 4.1,
+          "pre_valid": 5,
+          "pre_breaches": 3,
+          "baseline": 0.4133,
+          "festival": 0.2513,
+          "festival_triples": 5
+        }
+      ]
+    }
+  ],
+  "blind_spots": [
+    {
+      "ghat": "Arch Bridge",
+      "why": "Designated for 2026 but no readings in MPPCB 2023-2025 data"
+    }
+  ],
+  "settings": {
+    "baseline_weights": {
+      "breach_rate": 0.5,
+      "mean_exceedance": 0.5
+    },
+    "festival_weights": {
+      "during": 0.7,
+      "after": 0.3
+    },
+    "risk_weights": {
+      "baseline": 0.5,
+      "festival": 0.5
+    },
+    "tiers": {
+      "high": 27.5,
+      "medium": 20
+    },
+    "critical": {
+      "parameter": "Dissolved oxygen",
+      "value": 0,
+      "tier_floor": "High"
+    },
+    "driver": {
+      "baseline": 0.4,
+      "festival": 0.15
+    },
+    "confidence": {
+      "high": 0.9,
+      "medium": 0.7
+    },
+    "latest_durga_missing_cap": "Medium"
+  }
+}
