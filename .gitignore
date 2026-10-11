@@ -25,3 +25,6 @@ desktop.ini
 
 # Organisers' upload archive (contents already copied into data/ and resources/)
 *.zip
+
+# Arena skill run folders (local only)
+.arena/

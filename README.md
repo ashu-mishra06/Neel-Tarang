@@ -1,6 +1,6 @@
-# Visarjan Ghat Watch
+# Neel Tarang (नील तरंग)
 
-Shows which Bhopal immersion ghats need attention before **Durga visarjan
+A tool for Track 2, Visarjan Ghat Watch. It shows which Bhopal immersion ghats need attention before **Durga visarjan
 (20 Oct 2026)**, and **why**: was the water already poor before immersion, or
 did it get worse during immersion? Every number links back to the MPPCB report
 page it came from. Missing data is shown as missing, never as clean.
@@ -17,8 +17,8 @@ page it came from. Missing data is shown as missing, never as clean.
 ## How to run (5 steps)
 
 ```bash
-git clone <repo-url>
-cd <repo>
+git clone https://github.com/ashu-mishra06/Neel-Tarang.git
+cd Neel-Tarang
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 streamlit run app.py
@@ -100,7 +100,7 @@ Run the tests with `pytest` (153 tests). Print the ranking in a terminal with
 
 ## Deploy (Streamlit Community Cloud)
 
-1. Push this repo to a **public** GitHub repo.
+1. The repo is public: https://github.com/ashu-mishra06/Neel-Tarang
 2. On share.streamlit.io: New app -> pick the repo, branch, and `app.py`.
 3. Advanced settings: Python 3.12. No secrets are needed.
 4. Open the link on a phone and check that the ranked list loads.

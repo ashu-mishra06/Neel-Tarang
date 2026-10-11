@@ -1,1 +1,1 @@
-"""Streamlit UI components for Visarjan Ghat Watch."""
+"""Streamlit UI components for Neel Tarang (Track 2: Visarjan Ghat Watch)."""

@@ -1,4 +1,4 @@
-"""Visarjan Ghat Watch - Streamlit app.
+"""Neel Tarang (Track 2: Visarjan Ghat Watch) - Streamlit app.
 
 Start with:  streamlit run app.py
 Displays engine output only (scoring/); no scoring logic lives here.
@@ -246,9 +246,9 @@ def method_tab(data: dict[str, Any]) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Visarjan Ghat Watch", page_icon="🌊", layout="wide")
+    st.set_page_config(page_title="Neel Tarang", page_icon="🌊", layout="wide")
     html(css())
-    st.title("Visarjan Ghat Watch")
+    st.title("Neel Tarang")
     html(f'<div class="vgw-banner">{BANNER}</div>')
     data = load_all(RULES_PATH.stat().st_mtime_ns)
     ranking, brief, gaps = st.tabs(["Ranked ghats", "Brief (हिन्दी / EN)", "Gaps & method"])

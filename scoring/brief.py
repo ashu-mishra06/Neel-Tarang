@@ -97,7 +97,7 @@ def render_html(lang: str, ctx: dict[str, Any]) -> str:
     body = escape(render_text(lang, ctx))
     fonts = ('"Noto Sans Devanagari", "Nirmala UI", "Mangal", sans-serif' if lang == "hi"
              else 'system-ui, "Segoe UI", Arial, sans-serif')
-    title = "Visarjan Ghat Watch - brief" if lang == "en" else "विसर्जन घाट वॉच - सारांश"
+    title = "Neel Tarang - brief" if lang == "en" else "नील तरंग - सारांश"
     return (f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8">'
             f"<title>{title}</title><style>@page {{ size: A4; margin: 18mm; }} "
             f"body {{ font-family: {fonts}; font-size: 12pt; line-height: 1.45; "

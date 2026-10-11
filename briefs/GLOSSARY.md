@@ -2,6 +2,7 @@
 
 | English | Hindi used in the brief | Status |
 |---|---|---|
+| Neel Tarang (app name) | नील तरंग | draft |
 | ghat | घाट | draft |
 | kund | कुंड | draft |
 | immersion | विसर्जन | draft |
