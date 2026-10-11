@@ -110,7 +110,23 @@ TEXT: dict[str, dict[str, str]] = {
 }
 
 TEXT.update({
-    "nav_ghats": {"en": "Ghats", "hi": "घाट"},
+    "nav_ghats": {"en": "Overview", "hi": "अवलोकन"},
+    "col_ghat": {"en": "Ghat", "hi": "घाट"},
+    "col_tier": {"en": "Tier", "hi": "श्रेणी"},
+    "summary": {"en": "Summary: highest concern", "hi": "संक्षेप: सबसे अधिक चिंता"},
+    "details_card": {"en": "Ghat details", "hi": "घाट का विवरण"},
+    "choose_ghat": {"en": "Choose a ghat", "hi": "घाट चुनें"},
+    "gaps_card": {"en": "Data gaps to keep in mind", "hi": "ध्यान रखने योग्य आँकड़ों की कमियाँ"},
+    "help": {"en": "Help: how scores work", "hi": "सहायता: अंक कैसे बनते हैं"},
+    "see_gaps": {"en": "All gaps and the method", "hi": "सभी कमियाँ और तरीका"},
+    "kpi_ranked_sub": {"en": "{n} more with no past readings", "hi": "{n} और, बिना पिछली रीडिंग"},
+    "kpi_high_sub": {"en": "Tier lines: Medium {medium}, High {high}",
+                     "hi": "श्रेणी रेखाएँ: मध्यम {medium}, उच्च {high}"},
+    "kpi_lowconf": {"en": "Low confidence", "hi": "कम भरोसा"},
+    "kpi_lowconf_sub": {"en": "Missing tables or breaches not comparable",
+                        "hi": "गायब तालिकाएँ या तुलना न हो सकने वाले उल्लंघन"},
+    "kpi_unpaired_sub": {"en": "No earlier reading in the same table",
+                         "hi": "उसी तालिका में पहले की रीडिंग नहीं"},
     "low_conf": {"en": "Low confidence", "hi": "कम भरोसा"},
     "lede_ghats": {
         "en": "Ranked from MPPCB water-quality readings, 2023-2025. Open a ghat for the numbers, "

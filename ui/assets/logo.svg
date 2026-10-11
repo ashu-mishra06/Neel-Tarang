@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 200 40" role="img" aria-label="Neel Tarang">
+  <path d="M4 16 C10 9, 16 9, 22 16 S34 23, 40 16" fill="none" stroke="#185FA5" stroke-width="3" stroke-linecap="round"/>
+  <path d="M4 25 C10 18, 16 18, 22 25 S34 32, 40 25" fill="none" stroke="#185FA5" stroke-width="3" stroke-linecap="round"/>
+  <text x="50" y="27" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#1B1F24">Neel Tarang</text>
+</svg>

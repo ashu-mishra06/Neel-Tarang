@@ -13,6 +13,7 @@ COLOR = {
     "surface": "#F5F6F8",  # mist: grouped areas, table headers
     "link": "#185FA5",     # river blue: the one action / brand colour
     "border": "#D5D9DF",   # derived from slate: rules and outlines
+    "line": "#E6EAF0",     # lighter rule inside cards
     "focus": "#185FA5",
 }
 
@@ -39,7 +40,8 @@ RADIUS_CARD = 6
 RADIUS_TAG = 4
 TAP_TARGET = 40  # px minimum
 MOTION = "150ms cubic-bezier(0.22, 1, 0.36, 1)"
-MAX_WIDTH = 1080
+MAX_WIDTH = 1240
+SHADOW = "0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)"
 
 
 def _shape_css(shape: str, colour: str) -> str:
@@ -58,10 +60,14 @@ def css() -> str:
     c, s, t, w, m = COLOR, SPACE, TYPE_SCALE, WEIGHT, MISSING
     shapes = "".join(f".nt-tag.{k.lower()}::before {{ {_shape_css(v['shape'], v['fg'])} }}\n"
                      for k, v in TIER.items())
+    status_shapes = "".join(
+        f".nt-status.{k.lower()}::before {{ {_shape_css(v['shape'], v['fg'])} }}"
+        f" .nt-status.{k.lower()} {{ color:{v['fg']}; }} " for k, v in TIER.items())
     return f"""
 <style>
-/* base */
-.stApp {{ font-family:{FONT}; color:{c['text']}; background:{c['bg']}; }}
+/* base: light canvas, white cards (dashboard layout) */
+.stApp {{ font-family:{FONT}; color:{c['text']}; background:{c['surface']}; }}
+[data-testid="stHeader"] {{ background:transparent; }}
 .block-container {{ max-width:{MAX_WIDTH}px; padding-top:{s[6]}px; padding-bottom:{s[6]}px; }}
 [data-testid="stAppDeployButton"], [data-testid="stMainMenu"], footer {{ display:none !important; }}
 a, .nt-link {{ color:{c['link']}; text-underline-offset:2px; }}
@@ -72,6 +78,67 @@ a, .nt-link {{ color:{c['link']}; text-underline-offset:2px; }}
 @media (prefers-reduced-motion: reduce) {{
   * {{ transition:none !important; animation:none !important; }}
   .stButton button:hover, .stDownloadButton button:hover {{ transform:none; }} }}
+
+/* sidebar */
+[data-testid="stSidebar"] {{ background:{c['bg']}; border-right:1px solid {c['line']}; }}
+[data-testid="stSidebarNavLink"] {{ border-radius:8px; min-height:{TAP_TARGET}px;
+  padding:{s[1]}px {s[2]}px; margin:2px 0; }}
+[data-testid="stSidebarNavLink"] span {{ font-size:15px; color:{c['text']}; }}
+[data-testid="stSidebarNavLink"][aria-current="page"] {{ background:#E8F0F8; }}
+[data-testid="stSidebarNavLink"][aria-current="page"] span {{ color:{c['link']};
+  font-weight:{w['medium']}; }}
+
+/* cards: keyed containers st.container(border=True, key="card-...") */
+[class*="st-key-card"] {{ background:{c['bg']}; border:1px solid {c['line']} !important;
+  border-radius:10px; box-shadow:{SHADOW}; padding:{s[4]}px !important; }}
+.nt-card-title {{ font-size:17px; font-weight:{w['medium']}; margin:0 0 {s[2]}px 0; }}
+
+/* top bar and primary action */
+.nt-crumb {{ font-size:{t[1]}px; color:{c['muted']}; padding-top:{s[1]}px; }}
+.nt-crumb b {{ color:{c['text']}; font-weight:{w['regular']}; }}
+.st-key-topbar {{ border-bottom:1px solid {c['line']}; padding-bottom:{s[1]}px;
+  margin-bottom:{s[3]}px; }}
+.st-key-actions [data-testid="stPageLink"] a {{ background:{c['link']}; border-radius:8px;
+  min-height:{TAP_TARGET}px; padding:{s[1]}px {s[3]}px; justify-content:center;
+  transition:transform {MOTION}; }}
+.st-key-actions [data-testid="stPageLink"] a span,
+.st-key-actions [data-testid="stPageLink"] a p {{ color:{c['bg']} !important;
+  font-weight:{w['medium']}; }}
+.st-key-actions [data-testid="stPageLink"] a:hover {{ transform:translateY(-1px); }}
+
+/* stat cards */
+.nt-kpis {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+  gap:{s[3]}px; margin:0 0 {s[3]}px 0; }}
+.nt-kpi {{ background:{c['bg']}; border:1px solid {c['line']}; border-radius:10px;
+  box-shadow:{SHADOW}; padding:{s[4]}px; }}
+.nt-kpi .l {{ font-size:{t[1]}px; color:{c['muted']}; }}
+.nt-kpi .n {{ font-size:28px; font-weight:{w['medium']}; font-variant-numeric:tabular-nums;
+  margin:{s[1]}px 0 {s[0]}px 0; line-height:1.15; }}
+.nt-kpi .s {{ font-size:13px; color:{c['muted']}; }}
+
+/* summary list (right-hand card) */
+.nt-sum {{ padding:{s[2]}px 0; border-top:1px solid {c['line']}; display:flex;
+  justify-content:space-between; gap:{s[2]}px; align-items:baseline; }}
+.nt-sum.first {{ border-top:none; }}
+.nt-sum .name {{ font-size:{t[1]}px; }}
+.nt-sum .val {{ font-size:{t[3]}px; font-weight:{w['medium']}; font-variant-numeric:tabular-nums; }}
+
+/* ranked table */
+table.nt-table {{ width:100%; border-collapse:collapse; font-size:{t[1]}px; }}
+table.nt-table th {{ text-align:left; font-weight:{w['medium']}; color:{c['muted']};
+  background:{c['surface']}; padding:{s[2]}px; border-bottom:1px solid {c['line']}; }}
+table.nt-table td {{ padding:{s[2]}px; border-bottom:1px solid {c['line']}; vertical-align:top; }}
+table.nt-table td.num {{ text-align:right; font-variant-numeric:tabular-nums;
+  font-weight:{w['medium']}; }}
+table.nt-table .sub {{ display:block; color:{c['muted']}; font-size:{t[0]}px; margin-top:2px;
+  line-height:1.5; }}
+.nt-status {{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }}
+.nt-status::before {{ content:""; display:inline-block; width:8px; height:8px; flex:none; }}
+{status_shapes}
+table.nt-table, table.nt-table th, table.nt-table td, table.nt-ev, table.nt-ev th,
+table.nt-ev td {{ border-left:none !important; border-right:none !important;
+  border-top:none !important; }}
+@media (max-width: 760px) {{ table.nt-table .hide-sm {{ display:none; }} }}
 
 /* header */
 .nt-brand {{ font-size:{t[2]}px; font-weight:{w['medium']}; letter-spacing:-0.01em; }}

@@ -113,13 +113,13 @@ def test_brief_defaults_to_hindi() -> None:
     assert "घुलित ऑक्सीजन" in at.code[0].value
 
 
-def test_top_navigation_has_five_sections() -> None:
+def test_navigation_has_five_sections() -> None:
     import inspect
 
     import app
 
     source = inspect.getsource(app.main)
-    assert 'position="top"' in source
+    assert "st.navigation(" in source and "st.logo(" in source  # sidebar navigation
     for path in ("ghats", "planner", "brief", "readings", "gaps"):
         assert f'url_path="{path}"' in source
 

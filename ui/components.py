@@ -176,3 +176,64 @@ def kpi_cards(items: list[tuple[str, Any]]) -> str:
     stats = "".join(f'<div class="nt-stat"><div class="n">{E(str(v))}</div>'
                     f'<div class="l">{E(label)}</div></div>' for label, v in items)
     return f'<div class="nt-stats">{stats}</div>'
+
+
+# ---------- dashboard pieces (reference layout, 11 Oct 2026) ----------
+
+
+def status(tier: str, lang: str = "en") -> str:
+    """Tier as a table status: coloured shape + coloured text (no pill)."""
+    key = tier if tier in TIER else "NoData"
+    return f'<span class="nt-status {key.lower()}">{E(i18n.tier(key, lang))}</span>'
+
+
+def stat_cards(items: list[tuple[str, Any, str]]) -> str:
+    """Stat cards: label, big number, one real supporting line (no invented trends)."""
+    cards = "".join(f'<div class="nt-kpi"><div class="l">{E(label)}</div>'
+                    f'<div class="n">{E(str(value))}</div><div class="s">{E(sub)}</div></div>'
+                    for label, value, sub in items)
+    return f'<div class="nt-kpis">{cards}</div>'
+
+
+def summary_list(rows: list[tuple[str, str, str]]) -> str:
+    """Right-hand summary card rows: name + tier status, value on the right."""
+    out = []
+    for i, (name, tier_html, value) in enumerate(rows):
+        first = " first" if i == 0 else ""
+        out.append(f'<div class="nt-sum{first}"><div class="name">{E(name)}<br>{tier_html}</div>'
+                   f'<div class="val">{E(value)}</div></div>')
+    return "".join(out)
+
+
+def ranked_table(scores: Any, lang: str, reasons: dict[str, str],
+                 rules_by_param: dict[str, str]) -> str:
+    """Ranked ghats as one scannable table; notes and reason sit under the ghat name."""
+    t = lambda key: E(i18n.t(key, lang))  # noqa: E731
+    head = (f'<tr><th>#</th><th>{t("col_ghat")}</th><th>{t("col_tier")}</th>'
+            f'<th class="hide-sm">{t("driver")}</th><th class="hide-sm">{t("confidence")}</th>'
+            f'<th style="text-align:right">{t("risk")}</th></tr>')
+    rows = []
+    for s in scores.ranked:
+        notes = [persistence_text(s, rules_by_param, lang)] + [E(n) for n in flag_texts(s, lang)]
+        notes_html = " · ".join(n for n in notes if n)
+        low = (f' <span class="nt-lowconf">{t("low_conf")}</span>'
+               if s.confidence.level == "Low" else "")
+        rows.append(
+            f'<tr><td class="num" style="text-align:left">{s.rank}</td>'
+            f'<td><b>{E(s.ghat)}</b> <span class="sub" style="display:inline">'
+            f'{E(s.water_body)}</span><span class="sub">{E(reasons.get(s.ghat, ""))}</span>'
+            f'<span class="sub">{notes_html}</span></td>'
+            f'<td>{status(s.tier, lang)}</td>'
+            f'<td class="hide-sm">{E(i18n.driver(s.driver, lang))}</td>'
+            f'<td class="hide-sm">{E(i18n.confidence(s.confidence.level, lang))} '
+            f'({s.confidence.coverage:.0%}){low}</td>'
+            f'<td class="num">{s.risk_score:.1f}</td></tr>')
+    return f'<table class="nt-table"><thead>{head}</thead><tbody>{"".join(rows)}</tbody></table>'
+
+
+def crumb(section: str) -> str:
+    return f'<div class="nt-crumb">Neel Tarang &nbsp;/&nbsp; <b>{E(section)}</b></div>'
+
+
+def card_title(text: str) -> str:
+    return f'<div class="nt-card-title" role="heading" aria-level="2">{E(text)}</div>'

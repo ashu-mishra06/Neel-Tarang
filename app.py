@@ -94,23 +94,35 @@ def how_to_read(rules: dict[str, Any], lang: str) -> None:
 
 
 def kpis(data: dict[str, Any], lang: str) -> None:
-    scores = data["scores"]
-    html(ui.kpi_cards([
-        (i18n.t("kpi_ranked", lang), len(scores.ranked)),
-        (i18n.t("kpi_high", lang), sum(s.tier == "High" for s in scores.ranked)),
-        (i18n.t("kpi_nobase", lang), len(scores.blind_spots)),
-        (i18n.t("kpi_unpaired", lang), sum(len(s.unpaired_breaches) for s in scores.ranked)),
+    """Four stat cards, each with a real supporting line (no invented trends)."""
+    scores, tiers = data["scores"], data["rules"]["scoring"]["tiers"]
+    low = sum(s.confidence.level == "Low" for s in scores.ranked)
+    html(ui.stat_cards([
+        (i18n.t("kpi_ranked", lang), len(scores.ranked),
+         i18n.t("kpi_ranked_sub", lang, n=len(scores.blind_spots))),
+        (i18n.t("kpi_high", lang), sum(s.tier == "High" for s in scores.ranked),
+         i18n.t("kpi_high_sub", lang, medium=f"{tiers['medium']:g}", high=f"{tiers['high']:g}")),
+        (i18n.t("kpi_lowconf", lang), low, i18n.t("kpi_lowconf_sub", lang)),
+        (i18n.t("kpi_unpaired", lang), sum(len(s.unpaired_breaches) for s in scores.ranked),
+         i18n.t("kpi_unpaired_sub", lang)),
     ]))
 
 
 def overview_chart(data: dict[str, Any], lang: str) -> None:
-    html(ui.h2(i18n.t("chart_title", lang)))
+    html(ui.card_title(i18n.t("chart_title", lang)))
     labels = {"baseline": i18n.t("part_baseline", lang),
               "festival": i18n.t("part_festival", lang), "risk": i18n.t("risk", lang)}
     tiers = {k: i18n.tier(k, lang) for k in ("High", "Medium", "Low", "NoData")}
     st.vega_lite_chart(charts.risk_breakdown(data["scores"], data["rules"], labels, tiers),
                        width="stretch")
     st.caption(i18n.t("chart_caption", lang))
+
+
+def summary_card(data: dict[str, Any], lang: str) -> None:
+    html(ui.card_title(i18n.t("summary", lang)))
+    top = data["scores"].ranked[:3]
+    html(ui.summary_list([(s.ghat, ui.status(s.tier, lang), f"{s.risk_score:.1f}") for s in top]))
+    st.caption(i18n.t("risk", lang))
 
 
 def row_reason(s: Any, data: dict[str, Any], lang: str) -> str:
@@ -121,20 +133,37 @@ def row_reason(s: Any, data: dict[str, Any], lang: str) -> str:
 
 
 def ranked_list(data: dict[str, Any], lang: str) -> None:
+    """Ranked table, then one detail view for the chosen ghat (progressive disclosure)."""
     scores, rules = data["scores"], data["rules"]
-    how_to_read(rules, lang)
-    for s in scores.ranked:
-        rules_by_param = {k: v.rule for k, v in data['limits'].items()}
+    rules_by_param = {k: v.rule for k, v in data["limits"].items()}
+    with st.container(border=True, key="card-ranked"):
+        html(ui.card_title(i18n.t("tab_rank", lang)))
+        how_to_read(rules, lang)
+        reasons = {s.ghat: row_reason(s, data, lang) for s in scores.ranked}
+        html(ui.ranked_table(scores, lang, reasons, rules_by_param))
+        tiers = rules["scoring"]["tiers"]
+        st.caption(i18n.t("tier_note", lang, medium=f"{tiers['medium']:g}",
+                          high=f"{tiers['high']:g}", n=len(scores.ranked)))
+        if scores.blind_spots:
+            html(ui.h2(i18n.t("no_baseline_title", lang)))
+            for b in scores.blind_spots:
+                html(ui.no_baseline_card(b.ghat, b.why, lang))
+    with st.container(border=True, key="card-detail"):
+        html(ui.card_title(i18n.t("details_card", lang)))
+        names = [s.ghat for s in scores.ranked]
+        name = st.selectbox(i18n.t("choose_ghat", lang), names, key="detail_ghat")
+        s = next(x for x in scores.ranked if x.ghat == name)
         html(ui.ghat_row(s, lang, row_reason(s, data, lang), rules_by_param))
-        with st.expander(f"{i18n.t('details', lang)}: {s.ghat}"):
-            ghat_detail(s, data, lang)
-    tiers = rules["scoring"]["tiers"]
-    st.caption(i18n.t("tier_note", lang, medium=f"{tiers['medium']:g}",
-                      high=f"{tiers['high']:g}", n=len(scores.ranked)))
-    if scores.blind_spots:
-        html(ui.h2(i18n.t("no_baseline_title", lang)))
-        for b in scores.blind_spots:
-            html(ui.no_baseline_card(b.ghat, b.why, lang))
+        ghat_detail(s, data, lang)
+
+
+def gaps_card(data: dict[str, Any], lang: str, gaps_page: Any) -> None:
+    with st.container(border=True, key="card-gaps"):
+        html(ui.card_title(i18n.t("gaps_card", lang)))
+        for g in data["gaps"]:
+            if g.id in ("missing_tables", "designated_not_in_data", "single_column_tables"):
+                html(ui.gap_card(g, lang))
+        st.page_link(gaps_page, label=i18n.t("see_gaps", lang), icon=":material/arrow_forward:")
 
 
 # ---------- detail ----------
@@ -318,45 +347,57 @@ def method_tab(data: dict[str, Any]) -> None:
 # ---------- pages (one per section in the top navigation) ----------
 
 
-def section_header(key: str, lang: str) -> None:
-    """Same header on every section: context eyebrow, title, one-line description."""
-    html(ui.page_header(i18n.t("banner", lang), i18n.t(f"nav_{key}", lang),
-                        i18n.t(f"lede_{key}", lang)))
+def section_header(key: str, lang: str, action: Any = None, action_label: str = "") -> None:
+    """Page title + one-line description, with an optional primary action on the right."""
+    left, right = st.columns([4, 1.3], vertical_alignment="bottom")
+    with left:
+        html(ui.page_header(i18n.t("banner", lang), i18n.t(f"nav_{key}", lang),
+                            i18n.t(f"lede_{key}", lang)))
+    if action is not None:
+        with right, st.container(key="actions"):
+            st.page_link(action, label=action_label, icon=":material/add:")
 
 
-def page_ghats(data: dict[str, Any], state: dict[str, Any], lang: str) -> None:
-    html(ui.hero(lang))
-    html(f'<p class="nt-lede">{i18n.t("lede_ghats", lang)}</p>')
+def page_ghats(data: dict[str, Any], state: dict[str, Any], lang: str,
+               pages: dict[str, Any]) -> None:
+    section_header("ghats", lang, pages["readings"], i18n.t("nav_upload", lang))
     if state.get("changes"):
         st.info(i18n.t("in_use_banner", lang, label=state["label"]))
     kpis(data, lang)
-    overview_chart(data, lang)
-    html(ui.h2(i18n.t("tab_rank", lang)))
+    left, right = st.columns([2.1, 1], gap="medium")
+    with left, st.container(border=True, key="card-chart"):
+        overview_chart(data, lang)
+    with right, st.container(border=True, key="card-summary"):
+        summary_card(data, lang)
     ranked_list(data, lang)
+    gaps_card(data, lang, pages["gaps"])
 
 
 def page_upload(state: dict[str, Any], lang: str) -> None:
     section_header("upload", lang)
-    left, right = st.columns([2, 3], gap="large")
-    with left:
+    left, right = st.columns([2, 3], gap="medium")
+    with left, st.container(border=True, key="card-upload"):
         upload_panel(state, lang)
     with right:
         if state.get("changes"):
-            changes_table(state, state["label"])
+            with st.container(border=True, key="card-changes"):
+                changes_table(state, state["label"])
 
 
 def page_gaps(data: dict[str, Any], lang: str) -> None:
     section_header("gaps", lang)
-    gaps_tab(data, lang)
-    st.divider()
-    method_tab(data)
+    with st.container(border=True, key="card-gaplist"):
+        gaps_tab(data, lang)
+    with st.container(border=True, key="card-method"):
+        method_tab(data)
 
 
 def main() -> None:
     st.set_page_config(page_title="Neel Tarang · नील तरंग", page_icon=":material/water:",
-                       layout="wide",
-                       initial_sidebar_state="collapsed")
+                       layout="wide", initial_sidebar_state="expanded")
     html(css())
+    st.logo(str(repo_path("ui/assets/logo.svg")), size="large",
+            icon_image=str(repo_path("ui/assets/logo_icon.svg")))
     lang = "en" if st.session_state.get(LANG_KEY) else "hi"
     mtime = RULES_PATH.stat().st_mtime_ns
     upload, label = pending_upload()
@@ -366,17 +407,20 @@ def main() -> None:
     else:
         state.update(load_with_upload(mtime, upload))
         data = state["data"]
+    pages: dict[str, Any] = {}
 
     def ghats() -> None:
-        page_ghats(data, state, lang)
+        page_ghats(data, state, lang, pages)
 
     def planner() -> None:
         section_header("planner", lang)
-        planner_panel(data, lang)
+        with st.container(border=True, key="card-planner"):
+            planner_panel(data, lang)
 
     def brief() -> None:
         section_header("brief", lang)
-        brief_tab(data, lang)
+        with st.container(border=True, key="card-brief"):
+            brief_tab(data, lang)
 
     def readings() -> None:
         page_upload(state, lang)
@@ -384,22 +428,27 @@ def main() -> None:
     def gaps() -> None:
         page_gaps(data, lang)
 
-    nav = st.navigation([
-        st.Page(ghats, title=i18n.t("nav_ghats", lang), icon=":material/format_list_numbered:",
-                url_path="ghats", default=True),
-        st.Page(planner, title=i18n.t("nav_planner", lang), icon=":material/fact_check:",
-                url_path="planner"),
-        st.Page(brief, title=i18n.t("nav_brief", lang), icon=":material/description:",
-                url_path="brief"),
-        st.Page(readings, title=i18n.t("nav_upload", lang), icon=":material/upload_file:",
-                url_path="readings"),
-        st.Page(gaps, title=i18n.t("nav_gaps", lang), icon=":material/rule:", url_path="gaps"),
-    ], position="top")
-    left, right = st.columns([5, 1], vertical_alignment="center")
-    with left:
-        html(ui.brand())
-    with right:
+    pages.update(
+        ghats=st.Page(ghats, title=i18n.t("nav_ghats", lang), icon=":material/home:",
+                      url_path="ghats", default=True),
+        planner=st.Page(planner, title=i18n.t("nav_planner", lang), icon=":material/fact_check:",
+                        url_path="planner"),
+        brief=st.Page(brief, title=i18n.t("nav_brief", lang), icon=":material/description:",
+                      url_path="brief"),
+        readings=st.Page(readings, title=i18n.t("nav_upload", lang),
+                         icon=":material/upload_file:", url_path="readings"),
+        gaps=st.Page(gaps, title=i18n.t("nav_gaps", lang), icon=":material/rule:",
+                     url_path="gaps"),
+    )
+    nav = st.navigation(list(pages.values()))
+    with st.sidebar:
+        st.caption("Language / भाषा")
         st.toggle("English", key=LANG_KEY, help="हिन्दी / English")
+    with st.container(key="topbar"):
+        left, right = st.columns([4, 1.3], vertical_alignment="center")
+        left.markdown(ui.crumb(nav.title), unsafe_allow_html=True)
+        with right:
+            st.page_link(pages["gaps"], label=i18n.t("help", lang), icon=":material/help:")
     nav.run()
     st.caption(i18n.t("footer", lang))
     if lang == "hi":
