@@ -5,6 +5,8 @@ import pytest
 
 from scoring.config import load_rules, repo_path
 from scoring.engine import (
+    DRIVER_ELEVATED,
+    DRIVER_LOW,
     DRIVER_UNKNOWN,
     BlindSpot,
     Scores,
@@ -25,6 +27,7 @@ from scoring.loader import MISSING, VALUE
 RULES = load_rules()
 LIMITS = limits_from_rules(RULES)
 NO_DESIGNATED = pd.DataFrame(columns=["ghat_name", "data_site"])
+REAL = repo_path(RULES["data"]["readings_csv"]).exists()
 
 
 def frame(rows: list[tuple], ghat: str = "G") -> pd.DataFrame:
@@ -168,18 +171,73 @@ def test_tier_thresholds() -> None:
 
 
 @pytest.mark.parametrize(
-    "baseline, worse, expected",
+    "baseline, worse, tier, expected",
     [
-        (0.5, False, "Already poor before immersion"),
-        (0.1, True, "Worsens with immersion"),
-        (0.5, True, "Poor before and worse during"),
-        (0.1, False, "Lower concern on available data"),
-        (None, True, DRIVER_UNKNOWN),
-        (0.5, None, DRIVER_UNKNOWN),  # no matched pairs: cannot tell
+        (0.5, False, "High", "Already poor before immersion"),
+        (0.1, True, "High", "Worsens with immersion"),
+        (0.5, True, "Medium", "Poor before and worse during"),
+        (0.1, False, "Low", DRIVER_LOW),
+        (0.1, False, "Medium", DRIVER_ELEVATED),
+        (0.1, False, "High", DRIVER_ELEVATED),
+        (None, True, "High", DRIVER_UNKNOWN),
+        (0.5, None, "Low", DRIVER_UNKNOWN),  # no matched pairs: cannot tell
     ],
 )
-def test_driver(baseline, worse, expected: str) -> None:
-    assert driver_for(baseline, worse, RULES) == expected
+def test_driver(baseline, worse, tier: str, expected: str) -> None:
+    assert driver_for(baseline, worse, tier, RULES) == expected
+
+
+def _steady_ghat(bod_pre: float, bod_during: float, ghat: str = "G") -> pd.DataFrame:
+    """Six tables, BOD small rise (< 1 mg/l anchor), DO and pH fine."""
+    rows = []
+    for y in (2023, 2024, 2025):
+        for f in ("Ganesh", "Durga"):
+            for phase, bod in (("pre", bod_pre), ("during", bod_during), ("after", bod_during)):
+                rows += [(f, y, phase, "BOD", bod), (f, y, phase, "Dissolved oxygen", 7.0),
+                         (f, y, phase, "pH", 7.5)]
+    return frame(rows, ghat)
+
+
+@pytest.mark.parametrize(
+    "bod_pre, bod_during, tier, label",
+    [
+        (2.0, 2.5, "Low", DRIVER_LOW),          # nothing breaches: risk ~0
+        (3.6, 4.5, "Medium", DRIVER_ELEVATED),  # BOD always over 3, rise 0.9 < 1 mg/l
+    ],
+)
+def test_fallback_label_follows_tier(bod_pre, bod_during, tier: str, label: str) -> None:
+    (g,) = score_all(_steady_ghat(bod_pre, bod_during), RULES, LIMITS, NO_DESIGNATED).ranked
+    assert g.worsens is False and g.baseline < RULES["scoring"]["driver"]["baseline"]
+    assert (g.tier, g.driver) == (tier, label)
+
+
+def test_lower_concern_never_on_medium_or_high_real() -> None:
+    if not REAL:
+        pytest.skip("organisers' CSV not present")
+    for s in score_all(rules=RULES).ranked:
+        if s.tier != "Low":
+            assert s.driver != DRIVER_LOW, s.ghat
+
+
+def test_driver_detail_shows_numbers() -> None:
+    (g,) = score_all(_steady_ghat(3.6, 4.5), RULES, LIMITS, NO_DESIGNATED).ranked
+    d = g.driver_detail
+    assert d["label"] == g.driver and d["tier"] == g.tier
+    assert d["baseline"] == pytest.approx(g.baseline) and d["baseline_cutoff"] == 0.40
+    assert d["festival_score"] == pytest.approx(g.festival)
+    assert d["worsens_anchor_met"] is False and d["poor_before"] is False
+
+
+def test_medium_site_match_caps_confidence_and_flags() -> None:
+    df = _steady_ghat(2.0, 2.5)
+    certain = score_all(df, RULES, LIMITS, NO_DESIGNATED).ranked[0]
+    assert certain.confidence.level == "High" and not certain.site_match_uncertain
+    df = df.assign(site_match_confidence="medium")
+    (g,) = score_all(df, RULES, LIMITS, NO_DESIGNATED).ranked
+    assert g.site_match_uncertain and "two places" in g.site_match_note
+    assert g.confidence.level == "Medium"
+    assert g.confidence.cap_reasons == ["capped at Medium: site match uncertain"]
+    assert g.risk_score == pytest.approx(certain.risk_score)  # score unchanged
 
 
 def test_critical_flag_counts_only_valid_zero_do() -> None:
@@ -294,8 +352,6 @@ def test_reason_has_no_health_wording() -> None:
 
 # ---------- real data (gate G2) ----------
 
-REAL = repo_path(RULES["data"]["readings_csv"]).exists()
-
 
 @pytest.fixture(scope="module")
 def real() -> Scores:
@@ -331,6 +387,14 @@ def test_real_labels(real: Scores) -> None:
     by = {s.ghat: s for s in real.ranked}
     assert not by["Shahpura lake ghat"].on_2026_list
     assert any("medium confidence" in x for x in by["Rani Kamlapati ghat / Kamla Park kund"].labels)
+
+
+def test_real_rani_kamlapati_site_match_cap(real: Scores) -> None:
+    by = {s.ghat: s for s in real.ranked}
+    rk = by["Rani Kamlapati ghat / Kamla Park kund"]
+    assert rk.site_match_uncertain and rk.confidence.level == "Medium"
+    others = [s for s in real.ranked if s.ghat != rk.ghat]
+    assert not any(s.site_match_uncertain for s in others)
 
 
 def test_real_json_round_trip(real: Scores, tmp_path) -> None:

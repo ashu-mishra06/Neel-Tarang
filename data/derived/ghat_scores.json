@@ -14,6 +14,21 @@
       "tier": "High",
       "tier_from_score": "High",
       "driver": "Poor before and worse during",
+      "driver_detail": {
+        "label": "Poor before and worse during",
+        "tier": "High",
+        "baseline": 0.4094,
+        "baseline_cutoff": 0.4,
+        "poor_before": true,
+        "festival_score": 0.525,
+        "worsens_anchor_met": true,
+        "worsens_because": [
+          "Dissolved oxygen: mean worsening 1.05 >= 1",
+          "BOD: mean worsening 2.80 >= 1"
+        ]
+      },
+      "site_match_uncertain": false,
+      "site_match_note": "",
       "worsens": true,
       "worsens_because": [
         "Dissolved oxygen: mean worsening 1.05 >= 1",
@@ -32,6 +47,7 @@
         "expected": 54,
         "capped": false,
         "downgraded_for_unpaired": true,
+        "cap_reasons": [],
         "missing_items": [
           "no Durga 2025 table",
           "BOD, Ganesh 2025 after: not sampled",
@@ -309,6 +325,20 @@
       "tier": "High",
       "tier_from_score": "High",
       "driver": "Worsens with immersion",
+      "driver_detail": {
+        "label": "Worsens with immersion",
+        "tier": "High",
+        "baseline": 0.387,
+        "baseline_cutoff": 0.4,
+        "poor_before": false,
+        "festival_score": 0.5367,
+        "worsens_anchor_met": true,
+        "worsens_because": [
+          "BOD: mean worsening 2.07 >= 1"
+        ]
+      },
+      "site_match_uncertain": false,
+      "site_match_note": "",
       "worsens": true,
       "worsens_because": [
         "BOD: mean worsening 2.07 >= 1"
@@ -326,6 +356,7 @@
         "expected": 54,
         "capped": false,
         "downgraded_for_unpaired": false,
+        "cap_reasons": [],
         "missing_items": []
       },
       "critical": null,
@@ -615,6 +646,20 @@
       "tier": "High",
       "tier_from_score": "High",
       "driver": "Worsens with immersion",
+      "driver_detail": {
+        "label": "Worsens with immersion",
+        "tier": "High",
+        "baseline": 0.2926,
+        "baseline_cutoff": 0.4,
+        "poor_before": false,
+        "festival_score": 0.6133,
+        "worsens_anchor_met": true,
+        "worsens_because": [
+          "BOD: mean worsening 2.88 >= 1"
+        ]
+      },
+      "site_match_uncertain": false,
+      "site_match_note": "",
       "worsens": true,
       "worsens_because": [
         "BOD: mean worsening 2.88 >= 1"
@@ -632,6 +677,7 @@
         "expected": 54,
         "capped": false,
         "downgraded_for_unpaired": false,
+        "cap_reasons": [],
         "missing_items": []
       },
       "critical": null,
@@ -918,7 +964,19 @@
       "festival_triples": 18,
       "tier": "High",
       "tier_from_score": "High",
-      "driver": "Lower concern on available data",
+      "driver": "Elevated on several measures; no single large change",
+      "driver_detail": {
+        "label": "Elevated on several measures; no single large change",
+        "tier": "High",
+        "baseline": 0.352,
+        "baseline_cutoff": 0.4,
+        "poor_before": false,
+        "festival_score": 0.3178,
+        "worsens_anchor_met": false,
+        "worsens_because": []
+      },
+      "site_match_uncertain": true,
+      "site_match_note": "Report tables name this site differently between festivals (site match confidence: medium); readings may come from two places.",
       "worsens": false,
       "worsens_because": [],
       "near_boundary": false,
@@ -928,12 +986,15 @@
         "distance": 5.9907
       },
       "confidence": {
-        "level": "High",
+        "level": "Medium",
         "coverage": 1.0,
         "valid": 54,
         "expected": 54,
-        "capped": false,
+        "capped": true,
         "downgraded_for_unpaired": false,
+        "cap_reasons": [
+          "capped at Medium: site match uncertain"
+        ],
         "missing_items": []
       },
       "critical": null,
@@ -1224,6 +1285,20 @@
       "tier": "Medium",
       "tier_from_score": "Medium",
       "driver": "Worsens with immersion",
+      "driver_detail": {
+        "label": "Worsens with immersion",
+        "tier": "Medium",
+        "baseline": 0.3842,
+        "baseline_cutoff": 0.4,
+        "poor_before": false,
+        "festival_score": 0.149,
+        "worsens_anchor_met": true,
+        "worsens_because": [
+          "Dissolved oxygen: paired mean crosses the limit"
+        ]
+      },
+      "site_match_uncertain": false,
+      "site_match_note": "",
       "worsens": true,
       "worsens_because": [
         "Dissolved oxygen: paired mean crosses the limit"
@@ -1241,6 +1316,7 @@
         "expected": 54,
         "capped": false,
         "downgraded_for_unpaired": true,
+        "cap_reasons": [],
         "missing_items": [
           "no Durga 2025 table",
           "BOD, Ganesh 2025 after: not sampled",
@@ -1488,7 +1564,19 @@
       "festival_triples": 17,
       "tier": "Medium",
       "tier_from_score": "Medium",
-      "driver": "Lower concern on available data",
+      "driver": "Elevated on several measures; no single large change",
+      "driver_detail": {
+        "label": "Elevated on several measures; no single large change",
+        "tier": "Medium",
+        "baseline": 0.3104,
+        "baseline_cutoff": 0.4,
+        "poor_before": false,
+        "festival_score": 0.1907,
+        "worsens_anchor_met": false,
+        "worsens_because": []
+      },
+      "site_match_uncertain": false,
+      "site_match_note": "",
       "worsens": false,
       "worsens_because": [],
       "near_boundary": false,
@@ -1504,6 +1592,7 @@
         "expected": 54,
         "capped": false,
         "downgraded_for_unpaired": true,
+        "cap_reasons": [],
         "missing_items": [
           "BOD, Durga 2023 during: not sampled",
           "unpaired breach: BOD 7.8 mg/l, Durga 2023 after (p.59; no valid during-immersion reading in this table)"
@@ -1793,7 +1882,19 @@
       "festival_triples": 16,
       "tier": "Medium",
       "tier_from_score": "Medium",
-      "driver": "Lower concern on available data",
+      "driver": "Elevated on several measures; no single large change",
+      "driver_detail": {
+        "label": "Elevated on several measures; no single large change",
+        "tier": "Medium",
+        "baseline": 0.1551,
+        "baseline_cutoff": 0.4,
+        "poor_before": false,
+        "festival_score": 0.2513,
+        "worsens_anchor_met": false,
+        "worsens_because": []
+      },
+      "site_match_uncertain": false,
+      "site_match_note": "",
       "worsens": false,
       "worsens_because": [],
       "near_boundary": true,
@@ -1809,6 +1910,7 @@
         "expected": 54,
         "capped": false,
         "downgraded_for_unpaired": false,
+        "cap_reasons": [],
         "missing_items": [
           "BOD, Durga 2023 after: not sampled",
           "BOD, Durga 2023 during: not sampled",
@@ -2108,6 +2210,7 @@
       "medium": 0.7
     },
     "unpaired_breach_downgrade": 1,
-    "latest_durga_missing_cap": "Medium"
+    "latest_durga_missing_cap": "Medium",
+    "site_match_medium_cap": "Medium"
   }
 }

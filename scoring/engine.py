@@ -28,6 +28,8 @@ TIER_ORDER = {"High": 0, "Medium": 1, "Low": 2}
 CONFIDENCE_ORDER = {"Low": 0, "Medium": 1, "High": 2}
 CONFIDENCE_LEVELS = ["Low", "Medium", "High"]
 DRIVER_UNKNOWN = "Not enough data to tell"
+DRIVER_LOW = "Lower concern on available data"
+DRIVER_ELEVATED = "Elevated on several measures; no single large change"
 
 
 @dataclass
@@ -55,8 +57,9 @@ class Confidence:
     coverage: float
     valid: int
     expected: int
-    capped: bool
+    capped: bool  # any cap applied (see cap_reasons)
     downgraded_for_unpaired: bool = False
+    cap_reasons: list[str] = field(default_factory=list)
     missing_items: list[str] = field(default_factory=list)
 
 
@@ -82,6 +85,9 @@ class GhatScore:
     tier: str
     tier_from_score: str
     driver: str
+    driver_detail: dict[str, Any]
+    site_match_uncertain: bool
+    site_match_note: str
     worsens: bool | None
     worsens_because: list[str]
     near_boundary: bool
@@ -205,10 +211,13 @@ def near_boundary(risk: float, rules: dict[str, Any]) -> tuple[bool, dict[str, A
     return near, {"line": name.capitalize(), "value": value, "distance": distance}
 
 
-def driver_for(baseline: float | None, worse: bool | None, rules: dict[str, Any]) -> str:
+def driver_for(baseline: float | None, worse: bool | None, tier: str,
+               rules: dict[str, Any]) -> str:
     """Plain-words label for WHY a ghat is risky.
 
     `worse` is the physical matched-pair anchor (scoring.pairs), not the score.
+    When neither driver triggers, "lower concern" is only said of a Low-tier
+    ghat; a Medium/High ghat is "elevated on several measures".
     """
     if baseline is None or worse is None:
         return DRIVER_UNKNOWN
@@ -219,7 +228,28 @@ def driver_for(baseline: float | None, worse: bool | None, rules: dict[str, Any]
         return "Already poor before immersion"
     if worse:
         return "Worsens with immersion"
-    return "Lower concern on available data"
+    return DRIVER_LOW if tier == "Low" else DRIVER_ELEVATED
+
+
+def driver_detail(label: str, baseline: float | None, festival: float | None,
+                  worse: bool | None, because: list[str], tier: str,
+                  rules: dict[str, Any]) -> dict[str, Any]:
+    """The numbers behind the driver label, shown next to it in the output."""
+    return {
+        "label": label, "tier": tier,
+        "baseline": baseline, "baseline_cutoff": rules["scoring"]["driver"]["baseline"],
+        "poor_before": baseline is not None
+        and baseline >= rules["scoring"]["driver"]["baseline"],
+        "festival_score": festival, "worsens_anchor_met": worse, "worsens_because": because,
+    }
+
+
+def site_match(g: pd.DataFrame) -> tuple[bool, str]:
+    """Is the ghat's name match to the report tables uncertain ("medium")?"""
+    if "site_match_confidence" not in g or not (g["site_match_confidence"] == "medium").any():
+        return False, ""
+    return True, ("Report tables name this site differently between festivals "
+                  "(site match confidence: medium); readings may come from two places.")
 
 
 def critical_flag(g: pd.DataFrame, rules: dict[str, Any]) -> CriticalFlag | None:
@@ -259,10 +289,12 @@ def _unpaired_items(unpaired: list[dict[str, Any]]) -> list[str]:
 def confidence_for(
     g: pd.DataFrame, expected_tables: list[tuple[str, str]], latest_durga: tuple[str, str] | None,
     n_parameters: int, rules: dict[str, Any], unpaired: list[dict[str, Any]] | None = None,
+    site_uncertain: bool = False,
 ) -> Confidence:
     """Coverage of valid scored readings, with every missing item listed.
 
-    Any unpaired breach lowers the level by `unpaired_breach_downgrade` steps.
+    Order: level from coverage -> caps (latest Durga missing; uncertain site
+    match) -> one level off per `unpaired_breach_downgrade` if any unpaired breach.
     """
     valid = int((g["status"] == VALUE).sum())
     expected = len(expected_tables) * len(PHASES) * n_parameters
@@ -272,18 +304,26 @@ def confidence_for(
     missing += _missing_cells(g)
     c = rules["scoring"]["confidence"]
     level = "High" if coverage >= c["high"] else "Medium" if coverage >= c["medium"] else "Low"
-    capped = False
-    cap = rules["scoring"]["latest_durga_missing_cap"]
+    caps = []
     latest_absent = latest_durga is not None and latest_durga not in present
-    if latest_absent and CONFIDENCE_ORDER[level] > CONFIDENCE_ORDER[cap]:
-        level, capped = cap, True
+    if latest_absent:
+        caps.append((rules["scoring"]["latest_durga_missing_cap"],
+                     f"no {latest_durga[0]} {latest_durga[1]} table"))
+    if site_uncertain:
+        caps.append((rules["scoring"]["site_match_medium_cap"], "site match uncertain"))
+    reasons = []
+    for cap, why in caps:
+        if CONFIDENCE_ORDER[level] > CONFIDENCE_ORDER[cap]:
+            level = cap
+            reasons.append(f"capped at {cap}: {why}")
     downgraded = False
     if unpaired:
         steps = rules["scoring"]["unpaired_breach_downgrade"]
         new_level = CONFIDENCE_LEVELS[max(CONFIDENCE_ORDER[level] - steps, 0)]
         downgraded, level = new_level != level, new_level
         missing += _unpaired_items(unpaired)
-    return Confidence(level, coverage, valid, expected, capped, downgraded, missing)
+    return Confidence(level, coverage, valid, expected, bool(reasons), downgraded,
+                      reasons, missing)
 
 
 def parameter_details(
@@ -327,7 +367,7 @@ def load_designated(rules: dict[str, Any]) -> pd.DataFrame:
 
 def _labels(g: pd.DataFrame, on_list: bool) -> list[str]:
     labels = [] if on_list else ["Not on reported 2026 list - confirm with BMC"]
-    if "site_match_confidence" in g and (g["site_match_confidence"] == "medium").any():
+    if site_match(g)[0]:
         labels.append("Site name match is medium confidence - may cover two places")
     return labels
 
@@ -356,15 +396,19 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
     on_list = name in ctx["designated_sites"]
     reason = reason_text(g, _top_baseline(details), pairs, unpaired,
                          critical.count if critical else 0, limits)
+    label = driver_for(base["score"], worse, tier, rules)
+    uncertain, note = site_match(g)
     return GhatScore(
         ghat=name, water_body=str(g["water_body"].iloc[0]) if "water_body" in g else "",
         rank=0, risk_score=risk, baseline=base["score"], festival=festival,
         breach_rate_pre=base["breach_rate"], mean_exceedance_pre=base["mean_exceedance"],
         pre_valid=base["n"], festival_triples=len(triples), tier=tier,
-        tier_from_score=tier_score, driver=driver_for(base["score"], worse, rules),
-        worsens=worse, worsens_because=because, near_boundary=near, nearest_line=nearest,
+        tier_from_score=tier_score, driver=label,
+        driver_detail=driver_detail(label, base["score"], festival, worse, because, tier, rules),
+        site_match_uncertain=uncertain, site_match_note=note, worsens=worse,
+        worsens_because=because, near_boundary=near, nearest_line=nearest,
         confidence=confidence_for(g, ctx["expected_tables"], ctx["latest_durga"],
-                                  len(limits), rules, unpaired),
+                                  len(limits), rules, unpaired, uncertain),
         critical=critical, reason=reason, on_2026_list=on_list,
         labels=_labels(g, on_list), parameters=details, matched_pairs=pairs,
         unpaired_breaches=unpaired,

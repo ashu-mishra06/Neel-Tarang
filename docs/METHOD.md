@@ -74,7 +74,11 @@ write `data/derived/ghat_scores.json` with every component visible.
   different tables.
 - **Driver**: "poor before" = baseline >= 0.40. "Worsens" = the physical
   anchor (D1c), not the festival score. No matched pairs at all gives "Not
-  enough data to tell".
+  enough data to tell". When neither triggers, a Low-tier ghat reads "Lower
+  concern on available data" and a Medium or High ghat reads "Elevated on
+  several measures; no single large change" (D1f). The JSON field
+  `driver_detail` puts the numbers next to the label: baseline, its
+  cut-off, the festival score, and whether the anchor was met and why.
 - **Unpaired breaches**: a during/after reading that breaches its limit but
   cannot be compared (no valid pre in its table, or an after reading with no
   valid during) is listed with value, parameter, festival-year, phase, page
@@ -84,8 +88,9 @@ write `data/derived/ghat_scores.json` with every component visible.
   distance) in the JSON (D1d).
 - **Confidence** = valid scored readings / expected (festival-years in the
   data x 3 phases x 3 parameters = 54). Every missing table and cell is
-  listed. If the most recent Durga table is absent, confidence is at most
-  Medium. Any unpaired breach then lowers it one level (floor Low).
+  listed. Caps: at most Medium if the most recent Durga table is absent;
+  at most Medium if the site name match is "medium" (D1g). Then any unpaired
+  breach lowers it one level (floor Low). `cap_reasons` lists the caps used.
 - **Ranking**: tier, then risk score, then lower confidence first, then name.
 - **Blind spots**: ghats with no valid readings, and 2026 designated ghats
   with no data (Arch Bridge), are listed but never ranked or scored.
@@ -184,6 +189,25 @@ write `data/derived/ghat_scores.json` with every component visible.
     (0.409) reaches the 0.40 baseline cut-off. Shahpura (0.387) and Malikhedi
     (0.384) are just under it. That cut-off is still the Appendix A
     placeholder.
+- **Disclosures on the driver cut-offs.**
+  - The 0.40 baseline cut-off ("poor before") is the **Appendix A
+    placeholder**. It has not been calibrated or derived. It was kept
+    unchanged on purpose (reviewer instruction, 11 Oct 2026).
+  - The 1 mg/l / crossing anchor (D1c) was **written after the author had
+    seen Malikhedi's matched DO pairs**, which were shown in the review that
+    led to it. It was fixed before any other ghat's matched-pair results were
+    seen and has not been tuned since. Malikhedi passes via the crossing
+    rule (paired mean 5.35 to 4.8 mg/l), not via the 1 mg/l rule (drop 0.55).
+- **D1f fallback label by tier (decided 11 Oct 2026).** "Lower concern on
+  available data" is said only of Low-tier ghats. Saying it next to a High
+  tier read as a contradiction. A Medium/High ghat where neither driver
+  triggers reads "Elevated on several measures; no single large change".
+  The anchor and the 0.40 cut-off are unchanged.
+- **D1g uncertain site match (decided 11 Oct 2026).** If a ghat's site match
+  confidence is "medium" (Rani Kamlapati / Kamla Park kund: Ganesh tables say
+  "Kamla Park kund", Durga tables say "Lower Lake ghat"), its confidence is
+  at most Medium and it carries `site_match_uncertain: true` with a short
+  note. Its score is unchanged. Setting: `scoring.site_match_medium_cap`.
 - **D2 critical flag.** Any reported DO of exactly 0 mg/l lifts the tier to
   at least High. It is labelled as the team's own flag, not a CPCB limit.
   Bairagarh has 4 such readings (2023 Durga pre and during p.60, 2023 Ganesh

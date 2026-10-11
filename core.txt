@@ -563,13 +563,19 @@ DRIVER label (revised 11 Oct 2026):
              any parameter: paired mean pre within limit AND paired mean
              during breaching it (a "crossing").
            JUDGEMENT (1 mg/l is round and readable, not a CPCB number). Set
-           before looking at results; not tuned after. Replaces festival >= 0.15.
+           after Malikhedi's DO pairs had been seen but before any other
+           ghat's matched-pair results; not tuned after. Replaces festival >= 0.15.
            No matched pairs at all -> "Not enough data to tell".
   poor and not worse -> "Already poor before immersion"
   worse and not poor -> "Worsens with immersion"
   poor and worse     -> "Poor before and worse during"
-  otherwise          -> "Lower concern on available data"
+  otherwise, Low tier         -> "Lower concern on available data"
+  otherwise, Medium/High tier -> "Elevated on several measures; no single
+                                 large change"
   The festival SCORE (used in risk) is unchanged; only the label uses the anchor.
+  The output shows baseline, cut-off, festival score and anchor result next
+  to the label (driver_detail). 0.40 is the Appendix A placeholder (not
+  calibrated). The anchor was written after Malikhedi's DO pairs were seen.
 
 NEAR-BOUNDARY: risk within 1.5 points of a tier line -> near_boundary = true,
   with the nearest line and the signed distance in the output.
@@ -586,6 +592,8 @@ CONFIDENCE:
   High >= 0.90 | Medium 0.70-0.90 | Low < 0.70
   Also list the specific missing items (e.g. "no Durga 2025 table").
   If the latest Durga table is missing, cap confidence at Medium.
+  If the site name match is "medium" (may be two places), cap at Medium and
+  set site_match_uncertain with a note.
   If the ghat has any unpaired breach, lower confidence one level (floor Low).
   (JUDGEMENT; rules.yaml scoring.unpaired_breach_downgrade.)
 

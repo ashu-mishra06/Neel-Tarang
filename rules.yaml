@@ -94,7 +94,8 @@ scoring:
   #     - crossing: for any scored parameter, the matched-pair mean of pre is
   #       within the limit AND the matched-pair mean of during breaches it.
   #   JUDGEMENT (reviewer proposal, 11 Oct 2026): 1 mg/l is a round, readable
-  #   change, not a CPCB number. Set before looking at the results; not tuned after.
+  #   change, not a CPCB number. Written after Malikhedi's matched DO pairs had been
+  #   seen, before any other ghat's matched-pair results; not tuned after.
   driver:
     baseline: 0.40
     worsening_mg_l: {Dissolved oxygen: 1.0, BOD: 1.0}
@@ -112,3 +113,6 @@ scoring:
   unpaired_breach_downgrade: 1
   # If the most recent Durga table is absent, confidence is at most this.
   latest_durga_missing_cap: Medium
+  # If the ghat's site name match is "medium" (may be two places), confidence
+  # is at most this.
+  site_match_medium_cap: Medium
