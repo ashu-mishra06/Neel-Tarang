@@ -20,10 +20,13 @@ import pandas as pd
 from scoring.config import load_rules, repo_path
 from scoring.limits import Limit, evaluate_frame, limit_text, load_limits, worsen
 from scoring.loader import VALUE, load_readings
+from scoring.pairs import anchor_by_parameter, matched_pairs, unpaired_breaches, worsens
+from scoring.reasons import reason_text
 
 PHASES = ("pre", "during", "after")
 TIER_ORDER = {"High": 0, "Medium": 1, "Low": 2}
 CONFIDENCE_ORDER = {"Low": 0, "Medium": 1, "High": 2}
+CONFIDENCE_LEVELS = ["Low", "Medium", "High"]
 DRIVER_UNKNOWN = "Not enough data to tell"
 
 
@@ -33,13 +36,17 @@ class ParameterDetail:
 
     parameter: str
     limit: str
-    pre_mean: float | None
-    during_mean: float | None
     pre_valid: int
     pre_breaches: int
     baseline: float | None
     festival: float | None
     festival_triples: int
+    matched_pairs: int
+    paired_pre_mean: float | None  # mean over matched tables only
+    paired_during_mean: float | None
+    mean_worsening: float | None  # in the parameter's units, worse direction
+    crossing: bool
+    meets_anchor: bool
 
 
 @dataclass
@@ -49,6 +56,7 @@ class Confidence:
     valid: int
     expected: int
     capped: bool
+    downgraded_for_unpaired: bool = False
     missing_items: list[str] = field(default_factory=list)
 
 
@@ -74,12 +82,18 @@ class GhatScore:
     tier: str
     tier_from_score: str
     driver: str
+    worsens: bool | None
+    worsens_because: list[str]
+    near_boundary: bool
+    nearest_line: dict[str, Any]
     confidence: Confidence
     critical: CriticalFlag | None
     reason: str
     on_2026_list: bool
     labels: list[str] = field(default_factory=list)
     parameters: list[ParameterDetail] = field(default_factory=list)
+    matched_pairs: list[dict[str, Any]] = field(default_factory=list)
+    unpaired_breaches: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -182,12 +196,23 @@ def tier_for(score: float, rules: dict[str, Any]) -> str:
     return "High" if score >= t["high"] else "Medium" if score >= t["medium"] else "Low"
 
 
-def driver_for(baseline: float | None, festival: float | None, rules: dict[str, Any]) -> str:
-    """Plain-words label for WHY a ghat is risky."""
-    if baseline is None or festival is None:
+def near_boundary(risk: float, rules: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
+    """Is the risk within near_boundary_points of a tier line? Also returns the nearest line."""
+    lines = rules["scoring"]["tiers"]
+    name, value = min(lines.items(), key=lambda kv: abs(risk - kv[1]))
+    distance = risk - value
+    near = abs(distance) <= rules["scoring"]["near_boundary_points"]
+    return near, {"line": name.capitalize(), "value": value, "distance": distance}
+
+
+def driver_for(baseline: float | None, worse: bool | None, rules: dict[str, Any]) -> str:
+    """Plain-words label for WHY a ghat is risky.
+
+    `worse` is the physical matched-pair anchor (scoring.pairs), not the score.
+    """
+    if baseline is None or worse is None:
         return DRIVER_UNKNOWN
-    d = rules["scoring"]["driver"]
-    poor, worse = baseline >= d["baseline"], festival >= d["festival"]
+    poor = baseline >= rules["scoring"]["driver"]["baseline"]
     if poor and worse:
         return "Poor before and worse during"
     if poor:
@@ -222,11 +247,23 @@ def _missing_cells(g: pd.DataFrame) -> list[str]:
     ]
 
 
+def _unpaired_items(unpaired: list[dict[str, Any]]) -> list[str]:
+    out = []
+    for u in unpaired:
+        unit = f" {u['unit']}" if u["unit"] else ""
+        out.append(f"unpaired breach: {u['parameter']} {u['value']:g}{unit}, {u['festival']} "
+                   f"{u['year']} {u['phase']} (p.{u['source_page']}; {u['why']})")
+    return out
+
+
 def confidence_for(
     g: pd.DataFrame, expected_tables: list[tuple[str, str]], latest_durga: tuple[str, str] | None,
-    n_parameters: int, rules: dict[str, Any],
+    n_parameters: int, rules: dict[str, Any], unpaired: list[dict[str, Any]] | None = None,
 ) -> Confidence:
-    """Coverage of valid scored readings, with every missing item listed."""
+    """Coverage of valid scored readings, with every missing item listed.
+
+    Any unpaired breach lowers the level by `unpaired_breach_downgrade` steps.
+    """
     valid = int((g["status"] == VALUE).sum())
     expected = len(expected_tables) * len(PHASES) * n_parameters
     coverage = valid / expected if expected else 0.0
@@ -240,71 +277,42 @@ def confidence_for(
     latest_absent = latest_durga is not None and latest_durga not in present
     if latest_absent and CONFIDENCE_ORDER[level] > CONFIDENCE_ORDER[cap]:
         level, capped = cap, True
-    return Confidence(level, coverage, valid, expected, capped, missing)
+    downgraded = False
+    if unpaired:
+        steps = rules["scoring"]["unpaired_breach_downgrade"]
+        new_level = CONFIDENCE_LEVELS[max(CONFIDENCE_ORDER[level] - steps, 0)]
+        downgraded, level = new_level != level, new_level
+        missing += _unpaired_items(unpaired)
+    return Confidence(level, coverage, valid, expected, capped, downgraded, missing)
 
 
 def parameter_details(
-    g: pd.DataFrame, triples: list[dict[str, Any]], limits: dict[str, Limit],
-    rules: dict[str, Any],
+    g: pd.DataFrame, triples: list[dict[str, Any]], anchor: dict[str, dict[str, Any]],
+    limits: dict[str, Limit], rules: dict[str, Any],
 ) -> list[ParameterDetail]:
     out = []
     per_parameter = festival_by_parameter(triples)
     for name, limit in limits.items():
-        p = g[(g["parameter"] == name) & (g["status"] == VALUE)]
-        pre, during = p[p["phase"] == "pre"], p[p["phase"] == "during"]
-        base = baseline_components(g[g["parameter"] == name], rules)["score"]
+        pre = g[(g["parameter"] == name) & (g["status"] == VALUE) & (g["phase"] == "pre")]
+        a = anchor.get(name, {})
         out.append(ParameterDetail(
             parameter=name, limit=limit_text(limit),
-            pre_mean=float(pre["value_num"].mean()) if len(pre) else None,
-            during_mean=float(during["value_num"].mean()) if len(during) else None,
             pre_valid=len(pre), pre_breaches=int(pre["breach"].astype(bool).sum()),
-            baseline=base, festival=per_parameter.get(name),
+            baseline=baseline_components(g[g["parameter"] == name], rules)["score"],
+            festival=per_parameter.get(name),
             festival_triples=sum(t["parameter"] == name for t in triples),
+            matched_pairs=a.get("pairs", 0), paired_pre_mean=a.get("paired_pre_mean"),
+            paired_during_mean=a.get("paired_during_mean"),
+            mean_worsening=a.get("mean_worsening"), crossing=a.get("crossing", False),
+            meets_anchor=a.get("meets_anchor", False),
         ))
     return out
 
 
-# ---------- reason text (templates filled from numbers only) ----------
-
-
-def _top(details: list[ParameterDetail], part: str) -> ParameterDetail | None:
-    """Parameter with the largest baseline or festival component (None if all 0/absent)."""
-    best = max(details, key=lambda d: getattr(d, part) or 0)
-    return best if (getattr(best, part) or 0) > 0 else None
-
-
-def _sentence(d: ParameterDetail, unit: str) -> str:
-    if d.pre_mean is None:
-        return f"{d.parameter}: no valid readings before immersion."
-    text = f"{d.parameter} averaged {d.pre_mean:.1f}{unit} before immersion (limit: {d.limit})"
-    if d.during_mean is None:
-        return text + "; no valid readings during immersion."
-    return text + f" and {d.during_mean:.1f} during."
-
-
-def _worst_source(g: pd.DataFrame, parameter: str) -> str | None:
-    p = g[(g["parameter"] == parameter) & (g["status"] == VALUE)]
-    if p.empty:
-        return None
-    worst = p.sort_values(["exceedance", "year"], ascending=False).iloc[0]
-    return f"Report {worst['year']} p.{worst['source_page']}"
-
-
-def reason_text(g: pd.DataFrame, details: list[ParameterDetail], limits: dict[str, Limit],
-                critical: CriticalFlag | None, rules: dict[str, Any]) -> str:
-    """Plain-words reason: the biggest pre-immersion problem and, if different,
-    the parameter that worsened most. No health wording; numbers from data only.
-    """
-    base, fest = _top(details, "baseline"), _top(details, "festival")
-    picks = [d for d in (base, fest) if d is not None]
-    picks = list(dict.fromkeys(p.parameter for p in picks)) or [details[0].parameter]
-    by_name = {d.parameter: d for d in details}
-    unit = {n: f" {limits[n].unit}" if limits[n].unit else "" for n in picks}
-    text = " ".join(_sentence(by_name[n], unit[n]) for n in picks)
-    if critical:
-        text += f" Reported 0 mg/l dissolved oxygen {critical.count} time(s) (team's own flag)."
-    source = _worst_source(g, picks[0])
-    return f"{text} Source: {source}." if source else text
+def _top_baseline(details: list[ParameterDetail]) -> str | None:
+    """Parameter with the largest baseline component (None if no pre breaches)."""
+    best = max(details, key=lambda d: d.baseline or 0)
+    return best.parameter if (best.baseline or 0) > 0 else None
 
 
 # ---------- whole-dataset scoring ----------
@@ -339,18 +347,27 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
     floor = rules["scoring"]["critical"]["tier_floor"]
     if critical and TIER_ORDER[floor] < TIER_ORDER[tier]:
         tier = floor
-    details = parameter_details(g, triples, limits, rules)
+    pairs = matched_pairs(g, limits)
+    anchor = anchor_by_parameter(pairs, limits, rules)
+    worse, because = worsens(anchor)
+    unpaired = unpaired_breaches(g, limits)
+    details = parameter_details(g, triples, anchor, limits, rules)
+    near, nearest = near_boundary(risk, rules)
     on_list = name in ctx["designated_sites"]
+    reason = reason_text(g, _top_baseline(details), pairs, unpaired,
+                         critical.count if critical else 0, limits)
     return GhatScore(
         ghat=name, water_body=str(g["water_body"].iloc[0]) if "water_body" in g else "",
         rank=0, risk_score=risk, baseline=base["score"], festival=festival,
         breach_rate_pre=base["breach_rate"], mean_exceedance_pre=base["mean_exceedance"],
         pre_valid=base["n"], festival_triples=len(triples), tier=tier,
-        tier_from_score=tier_score, driver=driver_for(base["score"], festival, rules),
+        tier_from_score=tier_score, driver=driver_for(base["score"], worse, rules),
+        worsens=worse, worsens_because=because, near_boundary=near, nearest_line=nearest,
         confidence=confidence_for(g, ctx["expected_tables"], ctx["latest_durga"],
-                                  len(limits), rules),
-        critical=critical, reason=reason_text(g, details, limits, critical, rules),
-        on_2026_list=on_list, labels=_labels(g, on_list), parameters=details,
+                                  len(limits), rules, unpaired),
+        critical=critical, reason=reason, on_2026_list=on_list,
+        labels=_labels(g, on_list), parameters=details, matched_pairs=pairs,
+        unpaired_breaches=unpaired,
     )
 
 
@@ -441,6 +458,8 @@ def main() -> None:
     print("-" * len(header))
     for s in scores.ranked:
         flag = " *0 DO" if s.critical else ""
+        flag += f" ~near {s.nearest_line['line']}" if s.near_boundary else ""
+        flag += f" unpaired:{len(s.unpaired_breaches)}" if s.unpaired_breaches else ""
         print(f"{s.rank:>2}  {s.ghat:<38} {s.risk_score:>5.1f} {s.baseline or 0:>5.2f} "
               f"{s.festival or 0:>5.2f}  {s.tier:<6} {s.driver:<31} {s.confidence.level:<6} "
               f"{s.confidence.coverage:>4.0%}{flag}")

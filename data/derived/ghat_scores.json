@@ -14,12 +14,24 @@
       "tier": "High",
       "tier_from_score": "High",
       "driver": "Poor before and worse during",
+      "worsens": true,
+      "worsens_because": [
+        "Dissolved oxygen: mean worsening 1.05 >= 1",
+        "BOD: mean worsening 2.80 >= 1"
+      ],
+      "near_boundary": false,
+      "nearest_line": {
+        "line": "High",
+        "value": 27.5,
+        "distance": 19.2222
+      },
       "confidence": {
-        "level": "Medium",
+        "level": "Low",
         "coverage": 0.7222,
         "valid": 39,
         "expected": 54,
         "capped": false,
+        "downgraded_for_unpaired": true,
         "missing_items": [
           "no Durga 2025 table",
           "BOD, Ganesh 2025 after: not sampled",
@@ -27,7 +39,9 @@
           "pH, Ganesh 2025 after: **",
           "BOD, Ganesh 2025 pre: not sampled",
           "Dissolved oxygen, Ganesh 2025 pre: not sampled",
-          "pH, Ganesh 2025 pre: *"
+          "pH, Ganesh 2025 pre: *",
+          "unpaired breach: BOD 8 mg/l, Ganesh 2025 during (p.28; no valid pre-immersion reading in this table)",
+          "unpaired breach: Dissolved oxygen 0 mg/l, Ganesh 2025 during (p.28; no valid pre-immersion reading in this table)"
         ]
       },
       "critical": {
@@ -60,42 +74,224 @@
           }
         ]
       },
-      "reason": "BOD averaged 5.8 mg/l before immersion (limit: at most 3 mg/l) and 8.5 during. Reported 0 mg/l dissolved oxygen 4 time(s) (team's own flag). Source: Report 2025 p.28.",
+      "reason": "BOD breached its limit (at most 3 mg/l) in 4 of 4 pre-immersion readings; worst 6 mg/l (Durga 2024, Report 2024 p.25). Largest matched change during immersion: BOD 4.2 mg/l before to 13.2 mg/l during (Ganesh 2024, limit at most 3 mg/l; Report 2024 p.69). 2 breaching readings were not compared with an earlier reading in the same table: BOD 8 mg/l (Ganesh 2025 during, Report 2025 p.28; no valid pre-immersion reading in this table); Dissolved oxygen 0 mg/l (Ganesh 2025 during, Report 2025 p.28; no valid pre-immersion reading in this table). Reported 0 mg/l dissolved oxygen 4 time(s) (team's own flag, not a CPCB limit).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
         {
           "parameter": "pH",
           "limit": "6.5 to 8.5",
-          "pre_mean": 7.3325,
-          "during_mean": 7.302,
           "pre_valid": 4,
           "pre_breaches": 0,
           "baseline": 0.0,
           "festival": 0.0,
-          "festival_triples": 4
+          "festival_triples": 4,
+          "matched_pairs": 4,
+          "paired_pre_mean": 7.3325,
+          "paired_during_mean": 7.2875,
+          "mean_worsening": 0.0,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "Dissolved oxygen",
           "limit": "at least 5 mg/l",
-          "pre_mean": 3.75,
-          "during_mean": 2.16,
           "pre_valid": 4,
           "pre_breaches": 2,
           "baseline": 0.395,
           "festival": 0.264,
-          "festival_triples": 4
+          "festival_triples": 4,
+          "matched_pairs": 4,
+          "paired_pre_mean": 3.75,
+          "paired_during_mean": 2.7,
+          "mean_worsening": 1.05,
+          "crossing": false,
+          "meets_anchor": true
         },
         {
           "parameter": "BOD",
           "limit": "at most 3 mg/l",
-          "pre_mean": 5.8,
-          "during_mean": 8.48,
           "pre_valid": 4,
           "pre_breaches": 4,
           "baseline": 0.8333,
           "festival": 0.525,
-          "festival_triples": 4
+          "festival_triples": 4,
+          "matched_pairs": 4,
+          "paired_pre_mean": 5.8,
+          "paired_during_mean": 8.6,
+          "mean_worsening": 2.8,
+          "crossing": false,
+          "meets_anchor": true
+        }
+      ],
+      "matched_pairs": [
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 9.2,
+          "during": 9.0,
+          "pre_page": "60",
+          "during_page": "60",
+          "worsening": -0.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 0.0,
+          "during": 0.0,
+          "pre_page": "60",
+          "during_page": "60",
+          "worsening": 0.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.32,
+          "during": 7.55,
+          "pre_page": "60",
+          "during_page": "60",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 6.0,
+          "during": 8.0,
+          "pre_page": "25",
+          "during_page": "25",
+          "worsening": 2.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.2,
+          "during": 2.2,
+          "pre_page": "25",
+          "during_page": "25",
+          "worsening": 2.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.03,
+          "during": 6.87,
+          "pre_page": "25",
+          "during_page": "25",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 3.8,
+          "during": 4.2,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.4,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 5.6,
+          "during": 4.5,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 1.1,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.71,
+          "during": 7.37,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 4.2,
+          "during": 13.2,
+          "pre_page": "69",
+          "during_page": "69",
+          "worsening": 9.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 5.2,
+          "during": 4.1,
+          "pre_page": "69",
+          "during_page": "69",
+          "worsening": 1.1,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.27,
+          "during": 7.36,
+          "pre_page": "69",
+          "during_page": "69",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        }
+      ],
+      "unpaired_breaches": [
+        {
+          "parameter": "BOD",
+          "value": 8.0,
+          "unit": "mg/l",
+          "festival": "Ganesh",
+          "year": "2025",
+          "phase": "during",
+          "source_page": "28",
+          "exceedance": 1.0,
+          "why": "no valid pre-immersion reading in this table"
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "value": 0.0,
+          "unit": "mg/l",
+          "festival": "Ganesh",
+          "year": "2025",
+          "phase": "during",
+          "source_page": "28",
+          "exceedance": 1.0,
+          "why": "no valid pre-immersion reading in this table"
         }
       ]
     },
@@ -113,16 +309,27 @@
       "tier": "High",
       "tier_from_score": "High",
       "driver": "Worsens with immersion",
+      "worsens": true,
+      "worsens_because": [
+        "BOD: mean worsening 2.07 >= 1"
+      ],
+      "near_boundary": false,
+      "nearest_line": {
+        "line": "High",
+        "value": 27.5,
+        "distance": 18.6852
+      },
       "confidence": {
         "level": "High",
         "coverage": 1.0,
         "valid": 54,
         "expected": 54,
         "capped": false,
+        "downgraded_for_unpaired": false,
         "missing_items": []
       },
       "critical": null,
-      "reason": "BOD averaged 6.7 mg/l before immersion (limit: at most 3 mg/l) and 8.8 during. Source: Report 2025 p.65.",
+      "reason": "BOD breached its limit (at most 3 mg/l) in 6 of 6 pre-immersion readings; worst 6.8 mg/l (Durga 2025, Report 2025 p.65). Largest matched change during immersion: BOD 6.8 mg/l before to 11.4 mg/l during (Durga 2025, limit at most 3 mg/l; Report 2025 p.65).",
       "on_2026_list": false,
       "labels": [
         "Not on reported 2026 list - confirm with BMC"
@@ -131,37 +338,268 @@
         {
           "parameter": "pH",
           "limit": "6.5 to 8.5",
-          "pre_mean": 7.5817,
-          "during_mean": 7.5383,
           "pre_valid": 6,
           "pre_breaches": 0,
           "baseline": 0.0,
           "festival": 0.0,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 7.5817,
+          "paired_during_mean": 7.5383,
+          "mean_worsening": 0.0,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "Dissolved oxygen",
           "limit": "at least 5 mg/l",
-          "pre_mean": 5.6833,
-          "during_mean": 5.0333,
           "pre_valid": 6,
           "pre_breaches": 2,
           "baseline": 0.2167,
           "festival": 0.153,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 5.6833,
+          "paired_during_mean": 5.0333,
+          "mean_worsening": 0.65,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "BOD",
           "limit": "at most 3 mg/l",
-          "pre_mean": 6.7333,
-          "during_mean": 8.8,
           "pre_valid": 6,
           "pre_breaches": 6,
           "baseline": 0.9444,
           "festival": 0.5367,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 6.7333,
+          "paired_during_mean": 8.8,
+          "mean_worsening": 2.0667,
+          "crossing": false,
+          "meets_anchor": true
         }
-      ]
+      ],
+      "matched_pairs": [
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 6.4,
+          "during": 6.8,
+          "pre_page": "60",
+          "during_page": "60",
+          "worsening": 0.4,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.5,
+          "during": 4.0,
+          "pre_page": "60",
+          "during_page": "60",
+          "worsening": 0.5,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.35,
+          "during": 7.73,
+          "pre_page": "60",
+          "during_page": "60",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 10.8,
+          "during": 11.2,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.4,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.8,
+          "during": 5.4,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 1.4,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.36,
+          "during": 7.35,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 6.8,
+          "during": 11.4,
+          "pre_page": "65",
+          "during_page": "65",
+          "worsening": 4.6,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 2.5,
+          "during": 2.8,
+          "pre_page": "65",
+          "during_page": "65",
+          "worsening": -0.3,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 7.88,
+          "during": 7.36,
+          "pre_page": "65",
+          "during_page": "65",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 6.4,
+          "during": 8.4,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 2.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 5.9,
+          "during": 5.2,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 0.7,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.32,
+          "during": 7.36,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 5.8,
+          "during": 10.0,
+          "pre_page": "72",
+          "during_page": "72",
+          "worsening": 4.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 7.4,
+          "during": 6.8,
+          "pre_page": "72",
+          "during_page": "72",
+          "worsening": 0.6,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.88,
+          "during": 7.61,
+          "pre_page": "72",
+          "during_page": "72",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 4.2,
+          "during": 5.0,
+          "pre_page": "30",
+          "during_page": "30",
+          "worsening": 0.8,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 7.0,
+          "during": 6.0,
+          "pre_page": "30",
+          "during_page": "30",
+          "worsening": 1.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 7.7,
+          "during": 7.82,
+          "pre_page": "30",
+          "during_page": "30",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        }
+      ],
+      "unpaired_breaches": []
     },
     {
       "ghat": "Hathaikheda dam / kund",
@@ -177,53 +615,295 @@
       "tier": "High",
       "tier_from_score": "High",
       "driver": "Worsens with immersion",
+      "worsens": true,
+      "worsens_because": [
+        "BOD: mean worsening 2.88 >= 1"
+      ],
+      "near_boundary": false,
+      "nearest_line": {
+        "line": "High",
+        "value": 27.5,
+        "distance": 17.7963
+      },
       "confidence": {
         "level": "High",
         "coverage": 1.0,
         "valid": 54,
         "expected": 54,
         "capped": false,
+        "downgraded_for_unpaired": false,
         "missing_items": []
       },
       "critical": null,
-      "reason": "BOD averaged 5.5 mg/l before immersion (limit: at most 3 mg/l) and 8.4 during. Source: Report 2025 p.29.",
+      "reason": "BOD breached its limit (at most 3 mg/l) in 5 of 6 pre-immersion readings; worst 6.8 mg/l (Durga 2025, Report 2025 p.64). Largest matched change during immersion: BOD 5.2 mg/l before to 10 mg/l during (Ganesh 2025, limit at most 3 mg/l; Report 2025 p.29).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
         {
           "parameter": "pH",
           "limit": "6.5 to 8.5",
-          "pre_mean": 8.27,
-          "during_mean": 8.1683,
           "pre_valid": 6,
           "pre_breaches": 1,
           "baseline": 0.1222,
           "festival": 0.049,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 8.27,
+          "paired_during_mean": 8.1683,
+          "mean_worsening": -0.0117,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "Dissolved oxygen",
           "limit": "at least 5 mg/l",
-          "pre_mean": 7.6833,
-          "during_mean": 7.2333,
           "pre_valid": 6,
           "pre_breaches": 0,
           "baseline": 0.0,
           "festival": 0.239,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 7.6833,
+          "paired_during_mean": 7.2333,
+          "mean_worsening": 0.45,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "BOD",
           "limit": "at most 3 mg/l",
-          "pre_mean": 5.5167,
-          "during_mean": 8.4,
           "pre_valid": 6,
           "pre_breaches": 5,
           "baseline": 0.7556,
           "festival": 0.6133,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 5.5167,
+          "paired_during_mean": 8.4,
+          "mean_worsening": 2.8833,
+          "crossing": false,
+          "meets_anchor": true
         }
-      ]
+      ],
+      "matched_pairs": [
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 4.0,
+          "during": 8.8,
+          "pre_page": "59",
+          "during_page": "59",
+          "worsening": 4.8,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.5,
+          "during": 10.2,
+          "pre_page": "59",
+          "during_page": "59",
+          "worsening": -3.7,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 8.02,
+          "during": 8.02,
+          "pre_page": "59",
+          "during_page": "59",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 7.4,
+          "during": 4.4,
+          "pre_page": "23",
+          "during_page": "23",
+          "worsening": -3.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 8.6,
+          "during": 5.9,
+          "pre_page": "23",
+          "during_page": "23",
+          "worsening": 2.7,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 9.2,
+          "during": 7.7,
+          "pre_page": "23",
+          "during_page": "23",
+          "worsening": -0.7,
+          "pre_breach": true,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 6.8,
+          "during": 8.0,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 1.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 8.5,
+          "during": 8.5,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 8.14,
+          "during": 8.37,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 2.5,
+          "during": 6.0,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 3.5,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 7.9,
+          "during": 6.5,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 1.4,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 8.1,
+          "during": 8.92,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 0.42,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 7.2,
+          "during": 13.2,
+          "pre_page": "71",
+          "during_page": "71",
+          "worsening": 6.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 9.0,
+          "during": 5.3,
+          "pre_page": "71",
+          "during_page": "71",
+          "worsening": 3.7,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.93,
+          "during": 7.29,
+          "pre_page": "71",
+          "during_page": "71",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 5.2,
+          "during": 10.0,
+          "pre_page": "29",
+          "during_page": "29",
+          "worsening": 4.8,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 5.6,
+          "during": 7.0,
+          "pre_page": "29",
+          "during_page": "29",
+          "worsening": -1.4,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 8.23,
+          "during": 8.71,
+          "pre_page": "29",
+          "during_page": "29",
+          "worsening": 0.21,
+          "pre_breach": false,
+          "during_breach": true
+        }
+      ],
+      "unpaired_breaches": []
     },
     {
       "ghat": "Rani Kamlapati ghat / Kamla Park kund",
@@ -238,17 +918,26 @@
       "festival_triples": 18,
       "tier": "High",
       "tier_from_score": "High",
-      "driver": "Worsens with immersion",
+      "driver": "Lower concern on available data",
+      "worsens": false,
+      "worsens_because": [],
+      "near_boundary": false,
+      "nearest_line": {
+        "line": "High",
+        "value": 27.5,
+        "distance": 5.9907
+      },
       "confidence": {
         "level": "High",
         "coverage": 1.0,
         "valid": 54,
         "expected": 54,
         "capped": false,
+        "downgraded_for_unpaired": false,
         "missing_items": []
       },
       "critical": null,
-      "reason": "BOD averaged 5.7 mg/l before immersion (limit: at most 3 mg/l) and 6.5 during. Source: Report 2025 p.29.",
+      "reason": "BOD breached its limit (at most 3 mg/l) in 6 of 6 pre-immersion readings; worst 6.8 mg/l (Durga 2025, Report 2025 p.64). Largest matched change during immersion: BOD 3.8 mg/l before to 6.9 mg/l during (Ganesh 2025, limit at most 3 mg/l; Report 2025 p.29).",
       "on_2026_list": false,
       "labels": [
         "Not on reported 2026 list - confirm with BMC",
@@ -258,37 +947,268 @@
         {
           "parameter": "pH",
           "limit": "6.5 to 8.5",
-          "pre_mean": 7.655,
-          "during_mean": 7.7567,
           "pre_valid": 6,
           "pre_breaches": 0,
           "baseline": 0.0,
           "festival": 0.0,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 7.655,
+          "paired_during_mean": 7.7567,
+          "mean_worsening": 0.0,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "Dissolved oxygen",
           "limit": "at least 5 mg/l",
-          "pre_mean": 5.75,
-          "during_mean": 5.3,
           "pre_valid": 6,
           "pre_breaches": 2,
           "baseline": 0.2117,
           "festival": 0.092,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 5.75,
+          "paired_during_mean": 5.3,
+          "mean_worsening": 0.45,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "BOD",
           "limit": "at most 3 mg/l",
-          "pre_mean": 5.6667,
-          "during_mean": 6.55,
           "pre_valid": 6,
           "pre_breaches": 6,
           "baseline": 0.8444,
           "festival": 0.3178,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 5.6667,
+          "paired_during_mean": 6.55,
+          "mean_worsening": 0.8833,
+          "crossing": false,
+          "meets_anchor": false
         }
-      ]
+      ],
+      "matched_pairs": [
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 8.8,
+          "during": 8.4,
+          "pre_page": "59",
+          "during_page": "59",
+          "worsening": -0.4,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.2,
+          "during": 6.0,
+          "pre_page": "59",
+          "during_page": "59",
+          "worsening": 0.2,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 8.07,
+          "during": 7.63,
+          "pre_page": "59",
+          "during_page": "59",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 5.6,
+          "during": 5.8,
+          "pre_page": "24",
+          "during_page": "24",
+          "worsening": 0.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 7.5,
+          "during": 6.4,
+          "pre_page": "24",
+          "during_page": "24",
+          "worsening": 1.1,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.48,
+          "during": 7.7,
+          "pre_page": "24",
+          "during_page": "24",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 6.8,
+          "during": 8.8,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 2.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 2.5,
+          "during": 2.4,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 0.1,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 7.92,
+          "during": 7.85,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 4.2,
+          "during": 4.4,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 0.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.6,
+          "during": 5.8,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 0.8,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.65,
+          "during": 8.35,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 4.8,
+          "during": 5.0,
+          "pre_page": "70",
+          "during_page": "70",
+          "worsening": 0.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.8,
+          "during": 4.3,
+          "pre_page": "70",
+          "during_page": "70",
+          "worsening": 0.5,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.35,
+          "during": 7.31,
+          "pre_page": "70",
+          "during_page": "70",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 3.8,
+          "during": 6.9,
+          "pre_page": "29",
+          "during_page": "29",
+          "worsening": 3.1,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.9,
+          "during": 6.9,
+          "pre_page": "29",
+          "during_page": "29",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 7.46,
+          "during": 7.7,
+          "pre_page": "29",
+          "during_page": "29",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        }
+      ],
+      "unpaired_breaches": []
     },
     {
       "ghat": "Malikhedi kund",
@@ -303,13 +1223,24 @@
       "festival_triples": 12,
       "tier": "Medium",
       "tier_from_score": "Medium",
-      "driver": "Lower concern on available data",
+      "driver": "Worsens with immersion",
+      "worsens": true,
+      "worsens_because": [
+        "Dissolved oxygen: paired mean crosses the limit"
+      ],
+      "near_boundary": true,
+      "nearest_line": {
+        "line": "High",
+        "value": 27.5,
+        "distance": -0.8417
+      },
       "confidence": {
-        "level": "Medium",
+        "level": "Low",
         "coverage": 0.7222,
         "valid": 39,
         "expected": 54,
         "capped": false,
+        "downgraded_for_unpaired": true,
         "missing_items": [
           "no Durga 2025 table",
           "BOD, Ganesh 2025 after: not sampled",
@@ -317,46 +1248,230 @@
           "pH, Ganesh 2025 after: **",
           "BOD, Ganesh 2025 pre: not sampled",
           "Dissolved oxygen, Ganesh 2025 pre: not sampled",
-          "pH, Ganesh 2025 pre: *"
+          "pH, Ganesh 2025 pre: *",
+          "unpaired breach: BOD 5.8 mg/l, Ganesh 2025 during (p.29; no valid pre-immersion reading in this table)",
+          "unpaired breach: Dissolved oxygen 0.6 mg/l, Ganesh 2025 during (p.29; no valid pre-immersion reading in this table)"
         ]
       },
       "critical": null,
-      "reason": "BOD averaged 5.4 mg/l before immersion (limit: at most 3 mg/l) and 5.2 during. Dissolved oxygen averaged 5.4 mg/l before immersion (limit: at least 5 mg/l) and 4.0 during. Source: Report 2024 p.26.",
+      "reason": "BOD breached its limit (at most 3 mg/l) in 3 of 4 pre-immersion readings; worst 6.8 mg/l (Durga 2024, Report 2024 p.26). Largest matched change during immersion: Dissolved oxygen 4.8 mg/l before to 3.8 mg/l during (Ganesh 2024, limit at least 5 mg/l; Report 2024 p.71). 2 breaching readings were not compared with an earlier reading in the same table: BOD 5.8 mg/l (Ganesh 2025 during, Report 2025 p.29; no valid pre-immersion reading in this table); Dissolved oxygen 0.6 mg/l (Ganesh 2025 during, Report 2025 p.29; no valid pre-immersion reading in this table).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
         {
           "parameter": "pH",
           "limit": "6.5 to 8.5",
-          "pre_mean": 7.4975,
-          "during_mean": 7.478,
           "pre_valid": 4,
           "pre_breaches": 0,
           "baseline": 0.0,
           "festival": 0.0,
-          "festival_triples": 4
+          "festival_triples": 4,
+          "matched_pairs": 4,
+          "paired_pre_mean": 7.4975,
+          "paired_during_mean": 7.465,
+          "mean_worsening": 0.0,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "Dissolved oxygen",
           "limit": "at least 5 mg/l",
-          "pre_mean": 5.35,
-          "during_mean": 3.96,
           "pre_valid": 4,
           "pre_breaches": 3,
           "baseline": 0.4025,
           "festival": 0.149,
-          "festival_triples": 4
+          "festival_triples": 4,
+          "matched_pairs": 4,
+          "paired_pre_mean": 5.35,
+          "paired_during_mean": 4.8,
+          "mean_worsening": 0.55,
+          "crossing": true,
+          "meets_anchor": true
         },
         {
           "parameter": "BOD",
           "limit": "at most 3 mg/l",
-          "pre_mean": 5.45,
-          "during_mean": 5.24,
           "pre_valid": 4,
           "pre_breaches": 3,
           "baseline": 0.75,
           "festival": 0.1433,
-          "festival_triples": 4
+          "festival_triples": 4,
+          "matched_pairs": 4,
+          "paired_pre_mean": 5.45,
+          "paired_during_mean": 5.1,
+          "mean_worsening": -0.35,
+          "crossing": false,
+          "meets_anchor": false
+        }
+      ],
+      "matched_pairs": [
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 6.8,
+          "during": 6.8,
+          "pre_page": "61",
+          "during_page": "61",
+          "worsening": 0.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.6,
+          "during": 4.3,
+          "pre_page": "61",
+          "during_page": "61",
+          "worsening": 0.3,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.57,
+          "during": 7.37,
+          "pre_page": "61",
+          "during_page": "61",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 6.8,
+          "during": 5.0,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": -1.8,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.5,
+          "during": 4.1,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.4,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.29,
+          "during": 7.3,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 1.6,
+          "during": 1.8,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 0.2,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 7.5,
+          "during": 7.0,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 0.5,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.65,
+          "during": 7.81,
+          "pre_page": "27",
+          "during_page": "27",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 6.6,
+          "during": 6.8,
+          "pre_page": "71",
+          "during_page": "71",
+          "worsening": 0.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.8,
+          "during": 3.8,
+          "pre_page": "71",
+          "during_page": "71",
+          "worsening": 1.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 7.48,
+          "during": 7.38,
+          "pre_page": "71",
+          "during_page": "71",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        }
+      ],
+      "unpaired_breaches": [
+        {
+          "parameter": "BOD",
+          "value": 5.8,
+          "unit": "mg/l",
+          "festival": "Ganesh",
+          "year": "2025",
+          "phase": "during",
+          "source_page": "29",
+          "exceedance": 0.9333,
+          "why": "no valid pre-immersion reading in this table"
+        },
+        {
+          "parameter": "Dissolved oxygen",
+          "value": 0.6,
+          "unit": "mg/l",
+          "festival": "Ganesh",
+          "year": "2025",
+          "phase": "during",
+          "source_page": "29",
+          "exceedance": 0.88,
+          "why": "no valid pre-immersion reading in this table"
         }
       ]
     },
@@ -373,54 +1488,295 @@
       "festival_triples": 17,
       "tier": "Medium",
       "tier_from_score": "Medium",
-      "driver": "Worsens with immersion",
+      "driver": "Lower concern on available data",
+      "worsens": false,
+      "worsens_because": [],
+      "near_boundary": false,
+      "nearest_line": {
+        "line": "High",
+        "value": 27.5,
+        "distance": -2.4481
+      },
       "confidence": {
-        "level": "High",
+        "level": "Medium",
         "coverage": 0.9815,
         "valid": 53,
         "expected": 54,
         "capped": false,
+        "downgraded_for_unpaired": true,
         "missing_items": [
-          "BOD, Durga 2023 during: not sampled"
+          "BOD, Durga 2023 during: not sampled",
+          "unpaired breach: BOD 7.8 mg/l, Durga 2023 after (p.59; no valid during-immersion reading in this table)"
         ]
       },
       "critical": null,
-      "reason": "BOD averaged 5.4 mg/l before immersion (limit: at most 3 mg/l) and 5.6 during. Source: Report 2024 p.24.",
+      "reason": "BOD breached its limit (at most 3 mg/l) in 5 of 6 pre-immersion readings; worst 7.8 mg/l (Durga 2024, Report 2024 p.24). Largest matched change during immersion: Dissolved oxygen 6.6 mg/l before to 4.5 mg/l during (Durga 2024, limit at least 5 mg/l; Report 2024 p.24). 1 breaching reading was not compared with an earlier reading in the same table: BOD 7.8 mg/l (Durga 2023 after, Report 2023 p.59; no valid during-immersion reading in this table).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
         {
           "parameter": "pH",
           "limit": "6.5 to 8.5",
-          "pre_mean": 7.7383,
-          "during_mean": 7.6017,
           "pre_valid": 6,
           "pre_breaches": 0,
           "baseline": 0.0,
           "festival": 0.0008,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 7.7383,
+          "paired_during_mean": 7.6017,
+          "mean_worsening": 0.0017,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "Dissolved oxygen",
           "limit": "at least 5 mg/l",
-          "pre_mean": 6.0333,
-          "during_mean": 5.1667,
           "pre_valid": 6,
           "pre_breaches": 2,
           "baseline": 0.1867,
           "festival": 0.1573,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 6.0333,
+          "paired_during_mean": 5.1667,
+          "mean_worsening": 0.8667,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "BOD",
           "limit": "at most 3 mg/l",
-          "pre_mean": 5.3667,
-          "during_mean": 5.6,
           "pre_valid": 6,
           "pre_breaches": 5,
           "baseline": 0.7444,
           "festival": 0.1907,
-          "festival_triples": 5
+          "festival_triples": 5,
+          "matched_pairs": 5,
+          "paired_pre_mean": 5.16,
+          "paired_during_mean": 5.6,
+          "mean_worsening": 0.44,
+          "crossing": false,
+          "meets_anchor": false
+        }
+      ],
+      "matched_pairs": [
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.5,
+          "during": 4.2,
+          "pre_page": "59",
+          "during_page": "59",
+          "worsening": 0.3,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.87,
+          "during": 8.2,
+          "pre_page": "59",
+          "during_page": "59",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 7.8,
+          "during": 8.0,
+          "pre_page": "24",
+          "during_page": "24",
+          "worsening": 0.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.6,
+          "during": 4.5,
+          "pre_page": "24",
+          "during_page": "24",
+          "worsening": 2.1,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 8.0,
+          "during": 7.57,
+          "pre_page": "24",
+          "during_page": "24",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 4.4,
+          "during": 4.6,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 0.2,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 7.1,
+          "during": 6.2,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 0.9,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 8.17,
+          "during": 7.72,
+          "pre_page": "64",
+          "during_page": "64",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 2.4,
+          "during": 2.8,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.4,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.4,
+          "during": 6.1,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.3,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 6.98,
+          "during": 7.63,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 6.8,
+          "during": 7.2,
+          "pre_page": "69",
+          "during_page": "69",
+          "worsening": 0.4,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.3,
+          "during": 4.0,
+          "pre_page": "69",
+          "during_page": "69",
+          "worsening": 0.3,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 8.07,
+          "during": 6.49,
+          "pre_page": "69",
+          "during_page": "69",
+          "worsening": 0.01,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 4.4,
+          "during": 5.4,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 1.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 7.3,
+          "during": 6.0,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 1.3,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 7.34,
+          "during": 8.0,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        }
+      ],
+      "unpaired_breaches": [
+        {
+          "parameter": "BOD",
+          "value": 7.8,
+          "unit": "mg/l",
+          "festival": "Durga",
+          "year": "2023",
+          "phase": "after",
+          "source_page": "59",
+          "exceedance": 1.0,
+          "why": "no valid during-immersion reading in this table"
         }
       ]
     },
@@ -437,13 +1793,22 @@
       "festival_triples": 16,
       "tier": "Medium",
       "tier_from_score": "Medium",
-      "driver": "Worsens with immersion",
+      "driver": "Lower concern on available data",
+      "worsens": false,
+      "worsens_because": [],
+      "near_boundary": true,
+      "nearest_line": {
+        "line": "Medium",
+        "value": 20,
+        "distance": 0.3216
+      },
       "confidence": {
         "level": "High",
         "coverage": 0.9259,
         "valid": 50,
         "expected": 54,
         "capped": false,
+        "downgraded_for_unpaired": false,
         "missing_items": [
           "BOD, Durga 2023 after: not sampled",
           "BOD, Durga 2023 during: not sampled",
@@ -452,44 +1817,251 @@
         ]
       },
       "critical": null,
-      "reason": "BOD averaged 3.2 mg/l before immersion (limit: at most 3 mg/l) and 4.1 during. Source: Report 2024 p.70.",
+      "reason": "BOD breached its limit (at most 3 mg/l) in 3 of 5 pre-immersion readings; worst 4.8 mg/l (Ganesh 2025, Report 2025 p.28). Largest matched change during immersion: BOD 3.2 mg/l before to 6.8 mg/l during (Ganesh 2024, limit at most 3 mg/l; Report 2024 p.70).",
       "on_2026_list": true,
       "labels": [],
       "parameters": [
         {
           "parameter": "pH",
           "limit": "6.5 to 8.5",
-          "pre_mean": 7.88,
-          "during_mean": 8.27,
           "pre_valid": 6,
           "pre_breaches": 0,
           "baseline": 0.0,
           "festival": 0.0075,
-          "festival_triples": 5
+          "festival_triples": 5,
+          "matched_pairs": 5,
+          "paired_pre_mean": 7.924,
+          "paired_during_mean": 8.27,
+          "mean_worsening": 0.016,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "Dissolved oxygen",
           "limit": "at least 5 mg/l",
-          "pre_mean": 6.1,
-          "during_mean": 5.4167,
           "pre_valid": 6,
           "pre_breaches": 1,
           "baseline": 0.095,
           "festival": 0.1123,
-          "festival_triples": 6
+          "festival_triples": 6,
+          "matched_pairs": 6,
+          "paired_pre_mean": 6.1,
+          "paired_during_mean": 5.4167,
+          "mean_worsening": 0.6833,
+          "crossing": false,
+          "meets_anchor": false
         },
         {
           "parameter": "BOD",
           "limit": "at most 3 mg/l",
-          "pre_mean": 3.22,
-          "during_mean": 4.1,
           "pre_valid": 5,
           "pre_breaches": 3,
           "baseline": 0.4133,
           "festival": 0.2513,
-          "festival_triples": 5
+          "festival_triples": 5,
+          "matched_pairs": 5,
+          "paired_pre_mean": 3.22,
+          "paired_during_mean": 4.1,
+          "mean_worsening": 0.88,
+          "crossing": false,
+          "meets_anchor": false
         }
-      ]
+      ],
+      "matched_pairs": [
+        {
+          "festival": "Durga",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 5.4,
+          "during": 5.0,
+          "pre_page": "60",
+          "during_page": "60",
+          "worsening": 0.4,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 2.4,
+          "during": 2.6,
+          "pre_page": "25",
+          "during_page": "25",
+          "worsening": 0.2,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 7.6,
+          "during": 6.4,
+          "pre_page": "25",
+          "during_page": "25",
+          "worsening": 1.2,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 8.22,
+          "during": 8.02,
+          "pre_page": "25",
+          "during_page": "25",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 4.4,
+          "during": 4.8,
+          "pre_page": "65",
+          "during_page": "65",
+          "worsening": 0.4,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.6,
+          "during": 4.9,
+          "pre_page": "65",
+          "during_page": "65",
+          "worsening": 1.7,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Durga",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 8.25,
+          "during": 8.24,
+          "pre_page": "65",
+          "during_page": "65",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "BOD",
+          "pre": 1.3,
+          "during": 1.5,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.2,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.2,
+          "during": 6.7,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": -0.5,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2023",
+          "parameter": "pH",
+          "pre": 7.72,
+          "during": 8.53,
+          "pre_page": "26",
+          "during_page": "26",
+          "worsening": 0.03,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "BOD",
+          "pre": 3.2,
+          "during": 6.8,
+          "pre_page": "70",
+          "during_page": "70",
+          "worsening": 3.6,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "Dissolved oxygen",
+          "pre": 4.3,
+          "during": 3.9,
+          "pre_page": "70",
+          "during_page": "70",
+          "worsening": 0.4,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2024",
+          "parameter": "pH",
+          "pre": 8.02,
+          "during": 8.55,
+          "pre_page": "70",
+          "during_page": "70",
+          "worsening": 0.05,
+          "pre_breach": false,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "BOD",
+          "pre": 4.8,
+          "during": 4.8,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 0.0,
+          "pre_breach": true,
+          "during_breach": true
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "Dissolved oxygen",
+          "pre": 6.5,
+          "during": 5.6,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 0.9,
+          "pre_breach": false,
+          "during_breach": false
+        },
+        {
+          "festival": "Ganesh",
+          "year": "2025",
+          "parameter": "pH",
+          "pre": 7.41,
+          "during": 8.01,
+          "pre_page": "28",
+          "during_page": "28",
+          "worsening": 0.0,
+          "pre_breach": false,
+          "during_breach": false
+        }
+      ],
+      "unpaired_breaches": []
     }
   ],
   "blind_spots": [
@@ -523,12 +2095,19 @@
     },
     "driver": {
       "baseline": 0.4,
-      "festival": 0.15
+      "worsening_mg_l": {
+        "Dissolved oxygen": 1.0,
+        "BOD": 1.0
+      },
+      "crossing": true
     },
+    "festival_tier_anchor": 0.15,
+    "near_boundary_points": 1.5,
     "confidence": {
       "high": 0.9,
       "medium": 0.7
     },
+    "unpaired_breach_downgrade": 1,
     "latest_durga_missing_cap": "Medium"
   }
 }

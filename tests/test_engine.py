@@ -141,7 +141,8 @@ def test_single_parameter_crossing_drives_worsens_label() -> None:
     """Malikhedi-shaped case: DO 5.4 -> 4.0 crosses the 5 mg/l limit; BOD and pH steady."""
     scores = score_all(frame(three_parameter_table(5.4, 4.0)), RULES, LIMITS, NO_DESIGNATED)
     (g,) = scores.ranked
-    assert g.festival >= RULES["scoring"]["driver"]["festival"]
+    assert g.festival >= RULES["scoring"]["festival_tier_anchor"]  # 0.15 (review item)
+    assert g.worsens is True  # DO drop 1.4 mg/l >= 1.0 and crosses 5 mg/l
     assert g.baseline < RULES["scoring"]["driver"]["baseline"]
     assert g.driver == "Worsens with immersion"
     do = next(p for p in g.parameters if p.parameter == "Dissolved oxygen")
@@ -167,17 +168,18 @@ def test_tier_thresholds() -> None:
 
 
 @pytest.mark.parametrize(
-    "baseline, festival, expected",
+    "baseline, worse, expected",
     [
-        (0.5, 0.05, "Already poor before immersion"),
-        (0.1, 0.3, "Worsens with immersion"),
-        (0.5, 0.3, "Poor before and worse during"),
-        (0.1, 0.05, "Lower concern on available data"),
-        (None, 0.3, DRIVER_UNKNOWN),
+        (0.5, False, "Already poor before immersion"),
+        (0.1, True, "Worsens with immersion"),
+        (0.5, True, "Poor before and worse during"),
+        (0.1, False, "Lower concern on available data"),
+        (None, True, DRIVER_UNKNOWN),
+        (0.5, None, DRIVER_UNKNOWN),  # no matched pairs: cannot tell
     ],
 )
-def test_driver(baseline, festival, expected: str) -> None:
-    assert driver_for(baseline, festival, RULES) == expected
+def test_driver(baseline, worse, expected: str) -> None:
+    assert driver_for(baseline, worse, RULES) == expected
 
 
 def test_critical_flag_counts_only_valid_zero_do() -> None:

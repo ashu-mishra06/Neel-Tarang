@@ -57,13 +57,23 @@ safety.
 
 WHY THIS IS THE INSIGHT (descriptive pre-check on the organisers' CSV; small
 samples; a pattern to explore, NOT a finding to publish):
-  - Bairagarh kund: mean DO ~3.8 mg/l pre, ~2.2 during. Poor already, worse
+  (Corrected 11 Oct 2026: comparisons below use MATCHED pairs only - the same
+   festival-year table with valid pre and during readings. Earlier text
+   compared averages taken over different tables.)
+  - Bairagarh kund: DO in matched pairs 4.2 -> 2.2 (Durga 2024 p.25),
+    5.6 -> 4.5 (Ganesh 2023 p.26), 5.2 -> 4.1 (Ganesh 2024 p.69), 0 -> 0
+    (Durga 2023 p.60); paired means 3.75 -> 2.7 mg/l. Poor already, worse
     during. DO read 0 mg/l four times (2023 Ganesh after; 2023 Durga pre and
-    during; 2025 Ganesh during).
-  - Malikhedi kund: mean DO ~5.4 pre, ~4.0 during. Immersion pushes it under
-    the 5 mg/l limit.
-  - Hathaikheda: DO stays healthy (~7-8 mg/l) but BOD rises ~5.5 pre to ~8.4
-    during. A different failure mode.
+    during; 2025 Ganesh during, p.28 - the last has no pre reading).
+  - Malikhedi kund: DO in matched pairs 4.6 -> 4.3 (Durga 2023 p.61),
+    4.5 -> 4.1 (Durga 2024 p.26), 7.5 -> 7.0 (Ganesh 2023 p.27), 4.8 -> 3.8
+    (Ganesh 2024 p.71); paired means 5.35 -> 4.8 mg/l, which crosses the
+    5 mg/l limit. Separately, DO read 0.6 mg/l during Ganesh 2025 (Report
+    2025 p.29) with NO pre reading in that table, so it cannot be paired; it
+    is reported as an unpaired breach, not scored as a change.
+  - Hathaikheda: DO stays within the limit (~7-8 mg/l) but BOD rises in
+    matched pairs from a paired mean of 5.5 to 8.4 mg/l (all 6 tables
+    paired). A different failure mode.
   - BOD breaches the 3 mg/l limit in ~80-100% of PRE readings at most ghats,
     so BOD alone would rank mostly by baseline. Hence the split.
 
@@ -471,6 +481,10 @@ Code executes technical tasks; N1/N2 tasks are marked for humans.
  DEMO SCRIPT (6 min if selected)
    0:00 Problem: 3 years of tests buried in PDFs; decisions from memory.
    0:30 Officer's screen: ranked list; pick Bairagarh or Malikhedi; show why.
+        Quote matched pairs only. Malikhedi: DO 4.8 -> 3.8 mg/l (Ganesh 2024,
+        Report 2024 p.71); paired mean 5.35 -> 4.8 crosses the 5 mg/l limit;
+        plus an unpaired 0.6 mg/l during Ganesh 2025 (Report 2025 p.29, no
+        pre reading). Do NOT say "falls from 5.4 to 4.0".
    2:30 Trust: click a number -> report page image; show gaps panel.
    3:30 Brief: EN/HI; copy/forward.
    4:00 Decision: planner - "I can test 3 ghats" -> list and reasons.
@@ -535,14 +549,36 @@ not a CPCB limit; wording must say so.)
 
 TIER (calibrated in L2, 11 Oct 2026; placeholders were 60 / 35):
   High >= 27.5 | Medium 20-27.5 | Low < 20   (apply critical-flag floor)
-  High 27.5 = 100*(0.5*0.40 + 0.5*0.15), derived from the driver cut-offs.
+  High 27.5 = 100*(0.5*0.40 + 0.5*0.15), derived from baseline cut-off 0.40
+  and festival 0.15 (the festival driver cut-off until 11 Oct 2026; now kept
+  only as rules.yaml festival_tier_anchor). Not re-tuned.
   Medium 20 = 100*(0.5*0.40), derived arithmetic; anchor choice is judgement.
 
-DRIVER label (placeholders):
-  baseline >= 0.40 and festival <  0.15 -> "Already poor before immersion"
-  festival >= 0.15 and baseline <  0.40 -> "Worsens with immersion"
-  baseline >= 0.40 and festival >= 0.15 -> "Poor before and worse during"
-  otherwise                             -> "Lower concern on available data"
+DRIVER label (revised 11 Oct 2026):
+  poor   = baseline >= 0.40
+  worse  = PHYSICAL anchor on matched pairs (same table, valid pre AND during),
+           averaged per parameter over its matched tables:
+             DO mean(pre - during) >= 1.0 mg/l, or
+             BOD mean(during - pre) >= 1.0 mg/l, or
+             any parameter: paired mean pre within limit AND paired mean
+             during breaching it (a "crossing").
+           JUDGEMENT (1 mg/l is round and readable, not a CPCB number). Set
+           before looking at results; not tuned after. Replaces festival >= 0.15.
+           No matched pairs at all -> "Not enough data to tell".
+  poor and not worse -> "Already poor before immersion"
+  worse and not poor -> "Worsens with immersion"
+  poor and worse     -> "Poor before and worse during"
+  otherwise          -> "Lower concern on available data"
+  The festival SCORE (used in risk) is unchanged; only the label uses the anchor.
+
+NEAR-BOUNDARY: risk within 1.5 points of a tier line -> near_boundary = true,
+  with the nearest line and the signed distance in the output.
+
+UNPAIRED BREACHES: a during/after reading that breaches its limit but cannot
+  be compared (no valid pre in its table; or an after reading with no valid
+  during) is listed with value, parameter, festival-year, phase and source
+  page. It does not change the score; it lowers confidence (below) and is
+  shown in the evidence view. Never dropped silently.
 
 CONFIDENCE:
   coverage = valid scored readings / expected scored readings
@@ -550,13 +586,20 @@ CONFIDENCE:
   High >= 0.90 | Medium 0.70-0.90 | Low < 0.70
   Also list the specific missing items (e.g. "no Durga 2025 table").
   If the latest Durga table is missing, cap confidence at Medium.
+  If the ghat has any unpaired breach, lower confidence one level (floor Low).
+  (JUDGEMENT; rules.yaml scoring.unpaired_breach_downgrade.)
 
 RANKING: sort by tier, then risk score; break ties by lower confidence first
 (the less certain ghat is listed higher for testing). Show score components.
 
 REASON TEXT (generated by templates from numbers), example shape:
-  "Dissolved oxygen averaged 3.8 mg/l before immersion (limit: at least 5) and
-   2.2 during. Reported 0 mg/l four times. Source: Report 2023 p.60."
+  "BOD breached its limit (at most 3 mg/l) in 3 of 4 pre-immersion readings;
+   worst 6.8 mg/l (Durga 2024, Report 2024 p.26). Largest matched change
+   during immersion: Dissolved oxygen 4.8 mg/l before to 3.8 mg/l during
+   (Ganesh 2024, limit at least 5 mg/l; Report 2024 p.71). ..."
+  Quote single readings or matched before/during pairs ONLY - never averages
+  across different tables. Every number carries its report page. Unpaired
+  breaches are named with their page and why they could not be compared.
   Never use words implying health outcomes.
 
 --------------------------------------------------------------------------------
@@ -692,7 +735,10 @@ Repo must contain (tick each):
      L2 so the ranking is meaningful; do not tune to force a "nice" ranking.
      DECIDED 11 Oct 2026: festival = max over parameters (worst parameter);
      tiers High 27.5 / Medium 20, not re-tuned after the festival change.
-     See docs/METHOD.md D1.
+     DECIDED 11 Oct 2026 (second review): driver "worsens" uses a physical
+     matched-pair anchor (1 mg/l DO/BOD or a limit crossing; judgement);
+     near_boundary flag at 1.5 points; unpaired breaches listed and lower
+     confidence one level (judgement). See docs/METHOD.md D1.
  D2  Critical flag at DO == 0: keep, labelled as the team's own flag.
  D3  Rani Kamlapati / Kamla Park: keep as ONE entity with a visible warning
      "may cover two places"; do not silently split.

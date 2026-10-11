@@ -77,16 +77,38 @@ scoring:
   # Calibrated in Level 2 (placeholders 60/35 put all 7 ghats in Low). Derived
   # from the driver cut-offs (baseline 0.40, festival 0.15) and risk weights,
   # NOT fitted to the scores, and NOT re-tuned after the festival change:
-  #   high   27.5 = 100 * (0.5 * 0.40 + 0.5 * 0.15)  ghat exactly at BOTH driver cut-offs
+  #   high   27.5 = 100 * (0.5 * 0.40 + 0.5 * 0.15)  ghat at the baseline cut-off and at
+  #                  festival 0.15 (the festival driver cut-off until 11 Oct 2026)
   #   medium 20.0 = 100 * (0.5 * 0.40 + 0.5 * 0.00)  ghat at the baseline cut-off, no worsening
   # The arithmetic is derived; choosing "baseline cut-off alone" as the
   # Medium anchor is a judgement. See docs/METHOD.md (D1).
   tiers: {high: 27.5, medium: 20}
   # Team's own flag (not a CPCB limit): any reported DO of exactly this value.
   critical: {parameter: Dissolved oxygen, value: 0, tier_floor: High}
-  # Driver label cut-offs (0-1 scale).
-  driver: {baseline: 0.40, festival: 0.15}
+  # Driver label.
+  #   "poor before": baseline score >= baseline (0-1 scale).
+  #   "worsens": a PHYSICAL anchor on matched pairs (same festival-year table,
+  #   valid pre AND valid during), averaged per parameter over its matched tables:
+  #     - DO  : mean(pre - during)  >= 1.0 mg/l, or
+  #     - BOD : mean(during - pre)  >= 1.0 mg/l, or
+  #     - crossing: for any scored parameter, the matched-pair mean of pre is
+  #       within the limit AND the matched-pair mean of during breaches it.
+  #   JUDGEMENT (reviewer proposal, 11 Oct 2026): 1 mg/l is a round, readable
+  #   change, not a CPCB number. Set before looking at the results; not tuned after.
+  driver:
+    baseline: 0.40
+    worsening_mg_l: {Dissolved oxygen: 1.0, BOD: 1.0}
+    crossing: true
+  # Retired as a driver cut-off on 11 Oct 2026. Kept only because the High
+  # tier line (27.5) was derived from it; see tiers above.
+  festival_tier_anchor: 0.15
+  # Risk within this many points of a tier line -> near_boundary = true.
+  near_boundary_points: 1.5
   # Confidence = valid scored readings / expected scored readings.
   confidence: {high: 0.90, medium: 0.70}
+  # A during/after reading that breaches but cannot be compared with a pre
+  # reading (an "unpaired breach") may hide worsening. If a ghat has any,
+  # confidence drops this many levels (floor Low). JUDGEMENT.
+  unpaired_breach_downgrade: 1
   # If the most recent Durga table is absent, confidence is at most this.
   latest_durga_missing_cap: Medium

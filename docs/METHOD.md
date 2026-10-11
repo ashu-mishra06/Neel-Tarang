@@ -66,18 +66,35 @@ write `data/derived/ghat_scores.json` with every component visible.
   effect is the **worst parameter's** value (max over pH, DO, BOD). The
   per-parameter values stay in the output.
 - **Risk** = 100 x (0.5 x baseline + 0.5 x festival). If one part cannot be
-  computed, risk uses the other part alone (re-weighted) and the driver says
-  "Not enough data to tell". A missing part is never treated as 0.
+  computed, risk uses the other part alone (re-weighted). A missing part is
+  never treated as 0.
+- **Matched pair**: one festival-year table with a valid pre AND a valid
+  during reading for the same parameter. Any average used in a driver label
+  or quoted in text is taken over matched pairs only, never across
+  different tables.
+- **Driver**: "poor before" = baseline >= 0.40. "Worsens" = the physical
+  anchor (D1c), not the festival score. No matched pairs at all gives "Not
+  enough data to tell".
+- **Unpaired breaches**: a during/after reading that breaches its limit but
+  cannot be compared (no valid pre in its table, or an after reading with no
+  valid during) is listed with value, parameter, festival-year, phase, page
+  and cause. It does not change the score (D1e).
+- **Near-boundary**: risk within 1.5 points of a tier line sets
+  `near_boundary: true` and gives `nearest_line` (line name, value, signed
+  distance) in the JSON (D1d).
 - **Confidence** = valid scored readings / expected (festival-years in the
   data x 3 phases x 3 parameters = 54). Every missing table and cell is
   listed. If the most recent Durga table is absent, confidence is at most
-  Medium.
+  Medium. Any unpaired breach then lowers it one level (floor Low).
 - **Ranking**: tier, then risk score, then lower confidence first, then name.
 - **Blind spots**: ghats with no valid readings, and 2026 designated ghats
   with no data (Arch Bridge), are listed but never ranked or scored.
-- **Reason text**: filled from numbers by a template. It names the parameter
-  with the largest baseline part and, if different, the parameter that
-  worsened most, plus the source page of the worst reading.
+- **Reason text**: filled from numbers by a template, with a report page for
+  every number. Up to four sentences: (1) the parameter with the largest
+  baseline part, as "breached its limit in X of Y pre-immersion readings;
+  worst V"; (2) the matched pair that got worse the most, as "V1 before to
+  V2 during"; (3) up to two unpaired breaches, with the reason each could
+  not be compared; (4) the DO = 0 flag. It never quotes averages.
 
 ### Decisions (core.txt Section 8)
 
@@ -90,8 +107,10 @@ write `data/derived/ghat_scores.json` with every component visible.
 - **D1b tier cut-offs.** With the placeholder cut-offs (High 60, Medium 35)
   all 7 ghats scored Low (range 13.9-33.6). Final cut-offs, set in Level 2
   and **not re-tuned** after D1a:
-  - High >= 27.5 = 100 x (0.5 x 0.40 + 0.5 x 0.15). **Derived**: a ghat
-    exactly at both driver cut-offs ("poor before" and "worsens").
+  - High >= 27.5 = 100 x (0.5 x 0.40 + 0.5 x 0.15). **Derived** from the
+    baseline cut-off and festival 0.15. 0.15 was the festival driver cut-off
+    until D1c replaced it; it is kept only as `festival_tier_anchor` so this
+    derivation stays visible. The line itself is unchanged.
   - Medium >= 20 = 100 x (0.5 x 0.40 + 0.5 x 0). The arithmetic is derived
     from the same cut-offs, but choosing "at the baseline cut-off with no
     worsening" as the Medium anchor is a **judgement**, not a rule from
@@ -117,15 +136,54 @@ write `data/derived/ghat_scores.json` with every component visible.
   6 of 7 ghats now read "worsens". Prempura (20.3) sits just above the
   Medium line.
 
-  Malikhedi stays below 0.15 (DO 0.149). Its "5.4 to 4.0 mg/l" figure
-  compares averages over different tables. Matched pre/during pairs show
-  small drops (Durga 2023 4.6 to 4.3; Durga 2024 4.5 to 4.1; Ganesh 2023 7.5
-  to 7.0; Ganesh 2024 4.8 to 3.8). The lowest reading, 0.6 mg/l during
-  Ganesh 2025, has no pre reading, so no festival triple can be formed from
-  it. Its biggest drop is after immersion (Ganesh 2023: 7.5 to 3.2), which
-  carries weight 0.3. The test for a single parameter crossing its limit
-  uses a hand-made 5.4 -> 4.0 table (festival 0.28, "Worsens with
-  immersion").
+  Malikhedi's DO festival value is 0.149 (below 0.15). Its "5.4 to 4.0
+  mg/l" figure, used in earlier notes and in core.txt, compared averages
+  over different tables and has been withdrawn. Matched DO pairs: Durga 2023
+  4.6 to 4.3 (p.61), Durga 2024 4.5 to 4.1 (p.26), Ganesh 2023 7.5 to 7.0
+  (p.27), Ganesh 2024 4.8 to 3.8 (p.71). Paired means: 5.35 to 4.8. The
+  0.6 mg/l reading during Ganesh 2025 (Report 2025 p.29) has no pre reading
+  and is listed as an unpaired breach.
+- **D1c driver anchor (decided 11 Oct 2026, reviewer proposal; JUDGEMENT).**
+  "Worsens with immersion" now means, on matched pairs averaged per
+  parameter: DO falls by at least 1.0 mg/l, or BOD rises by at least 1.0
+  mg/l, or the paired mean of pre is within the limit and the paired mean of
+  during breaches it. Only pre-to-during pairs are used. 1 mg/l is a round,
+  readable change, not a CPCB number. It was written into `rules.yaml`
+  before the results were seen and has not been tuned. Disclosure: Malikhedi's
+  matched DO pairs had already been seen in the previous review; no other
+  ghat's matched-pair numbers had. The festival SCORE is unchanged and still
+  drives risk and tier.
+- **D1d near-boundary flag.** Risk within 1.5 points of a tier line sets
+  `near_boundary` and `nearest_line`, so a tier that depends on a fraction
+  of a point is visible. The 1.5 points is a judgement
+  (`scoring.near_boundary_points`).
+- **D1e unpaired breaches (JUDGEMENT on the confidence effect).** Listed,
+  never dropped. One level off confidence (`unpaired_breach_downgrade: 1`)
+  because a breach that cannot be compared may hide worsening the score
+  does not see.
+
+  Result of D1c-D1e (score, rank and tier unchanged from D1a):
+
+  | Ghat | Risk | Tier | Driver (D1a -> D1c) | Confidence | Flags |
+  |---|---|---|---|---|---|
+  | Bairagarh | 46.7 | High | Poor before and worse during (same) | Medium -> **Low** | DO 0 x4; 2 unpaired |
+  | Shahpura | 46.2 | High | Worsens (same) | High | |
+  | Hathaikheda | 45.3 | High | Worsens (same) | High | |
+  | Rani Kamlapati | 33.5 | High | Worsens -> **Lower concern** | High | |
+  | Malikhedi | 26.7 | Medium | Lower concern -> **Worsens** (DO crossing) | Medium -> **Low** | near High (-0.8); 2 unpaired |
+  | Khatlapura | 25.1 | Medium | Worsens -> **Lower concern** | High -> **Medium** | 1 unpaired |
+  | Prempura | 20.3 | Medium | Worsens -> **Lower concern** | High | near Medium (+0.3) |
+
+  Labels now: Poor before and worse during 1, Worsens 3, Lower concern 3,
+  Already poor 0. Known weaknesses:
+  - Rani Kamlapati is High tier but reads "Lower concern on available data".
+    Its festival score (BOD 0.32, pushed up by scaled and after-phase
+    changes) lifts the risk, while its matched mean BOD rise is 0.88 mg/l,
+    under 1.0. The score and the label measure different things.
+  - "Already poor before immersion" is used by no ghat. Only Bairagarh
+    (0.409) reaches the 0.40 baseline cut-off. Shahpura (0.387) and Malikhedi
+    (0.384) are just under it. That cut-off is still the Appendix A
+    placeholder.
 - **D2 critical flag.** Any reported DO of exactly 0 mg/l lifts the tier to
   at least High. It is labelled as the team's own flag, not a CPCB limit.
   Bairagarh has 4 such readings (2023 Durga pre and during p.60, 2023 Ganesh
@@ -142,6 +200,6 @@ write `data/derived/ghat_scores.json` with every component visible.
 - BOD breaches its limit in most pre-immersion readings at every ghat, so
   BOD drives most baselines. That is why the baseline and festival parts are
   kept apart.
-- The reason text quotes average pre and average during values. These can
-  come from different tables (see Malikhedi above), so they can show a
-  bigger change than the matched pairs used in the score.
+- The reason text quotes single readings and matched pairs only. Paired
+  means appear in the JSON (`paired_pre_mean`, `paired_during_mean`) and are
+  computed over the same tables.
