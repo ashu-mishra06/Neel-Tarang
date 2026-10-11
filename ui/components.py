@@ -146,7 +146,21 @@ def page_image(path: Path, alt: str) -> str:
     return f'<div class="vgw-page"><img src="data:image/png;base64,{data}" alt="{E(alt)}"></div>'
 
 
+def brand() -> str:
+    """Small brand mark for the header row."""
+    return ('<div class="vgw-brand"><div class="vgw-logo">🌊</div><div>'
+            '<div class="vgw-name">Neel Tarang · नील तरंग</div>'
+            '<div class="vgw-sub">Visarjan Ghat Watch · Bhopal</div></div></div>')
+
+
 def hero(lang: str) -> str:
-    return (f'<div class="vgw-hero"><h1>🌊 Neel Tarang · नील तरंग</h1>'
-            f'<p>{E(i18n.t("app_tagline", lang))}</p>'
-            f'<span class="vgw-chipline">{E(i18n.t("banner", lang))}</span></div>')
+    """Minimal page lead: one gradient line, one context pill."""
+    return (f'<div class="vgw-lead">{E(i18n.t("app_tagline", lang))}</div>'
+            f'<span class="vgw-pill">{E(i18n.t("banner", lang))}</span>')
+
+
+def kpi_cards(items: list[tuple[str, Any]]) -> str:
+    """Plain number cards (no colour coding)."""
+    cards = "".join(f'<div class="vgw-kpi"><div class="n">{E(str(v))}</div>'
+                    f'<div class="l">{E(label)}</div></div>' for label, v in items)
+    return f'<div class="vgw-kpis">{cards}</div>'

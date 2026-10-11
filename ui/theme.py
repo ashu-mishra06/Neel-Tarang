@@ -22,6 +22,8 @@ MISSING = {"fg": "#5F5E5A", "bg": "#F1EFE8", "icon": "⊘"}
 CHART = {"baseline": "#185FA5", "festival": "#D9822B", "limit": "#A32D2D",
          "worse": "#C0392B", "better": "#3B6D11"}
 HERO = {"from": "#0B3D6B", "to": "#1A7FB5", "fg": "#FFFFFF"}
+FONT = ('-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, '
+        '"Noto Sans Devanagari", "Nirmala UI", sans-serif')
 SHADOW = "0 1px 3px rgba(16, 24, 40, 0.10), 0 1px 2px rgba(16, 24, 40, 0.06)"
 CONFIDENCE_ICON = {"High": "●●●", "Medium": "●●○", "Low": "●○○"}
 
@@ -38,6 +40,29 @@ def css() -> str:
     missing = MISSING
     return f"""
 <style>
+.stApp {{ font-family:{FONT}; }}
+[data-testid="stAppDeployButton"], [data-testid="stMainMenu"], footer {{ display:none !important; }}
+.block-container {{ padding-top:{s[4] * 3}px; max-width:1100px; }}
+.vgw-brand {{ display:flex; align-items:center; gap:{s[2]}px; }}
+.vgw-brand .vgw-logo {{ width:34px; height:34px; border-radius:10px; display:flex;
+  align-items:center; justify-content:center; font-size:18px;
+  background:linear-gradient(135deg, {HERO['from']}, {HERO['to']}); color:{HERO['fg']}; }}
+.vgw-brand .vgw-name {{ font-size:{t[3]}px; font-weight:500; color:{c['text']}; }}
+.vgw-brand .vgw-sub {{ font-size:{t[0]}px; color:{c['muted']}; }}
+.vgw-lead {{ font-size:28px; font-weight:500; line-height:1.25; margin:{s[2]}px 0 {s[1]}px 0;
+  background:linear-gradient(90deg, {HERO['from']}, {HERO['to']}); -webkit-background-clip:text;
+  background-clip:text; color:transparent; }}
+.vgw-pill {{ display:inline-block; padding:{s[1]}px {s[2]}px; border-radius:999px;
+  background:{c['surface']}; color:{c['muted']}; font-size:{t[1]}px;
+  border:1px solid {c['border']}; margin:{s[1]}px 0 {s[3]}px 0; }}
+.vgw-kpis {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+  gap:{s[2]}px; margin:{s[2]}px 0 {s[4]}px 0; }}
+.vgw-kpi {{ border:1px solid {c['border']}; border-radius:12px; padding:{s[3]}px;
+  background:{c['bg']}; }}
+.vgw-kpi .n {{ font-size:28px; font-weight:500; color:{c['text']}; line-height:1.1; }}
+.vgw-kpi .l {{ font-size:{t[1]}px; color:{c['muted']}; margin-top:{s[0]}px; }}
+.vgw-section {{ font-size:{t[3]}px; font-weight:500; color:{c['text']};
+  margin:{s[4]}px 0 {s[1]}px 0; }}
 .vgw-hero {{ background:linear-gradient(120deg, {HERO['from']}, {HERO['to']});
   color:{HERO['fg']}; padding:{s[4]}px; border-radius:{RADIUS_CARD * 2}px;
   margin-bottom:{s[3]}px; box-shadow:{SHADOW}; }}

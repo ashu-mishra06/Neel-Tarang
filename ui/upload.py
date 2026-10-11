@@ -12,33 +12,39 @@ from ui import i18n
 
 SAMPLE = "data/samples/new_readings_sample.csv"
 UPLOAD_KEY = "upload_file"
-SAMPLE_KEY = "use_sample"
+BYTES_KEY, NAME_KEY = "upload_bytes", "upload_name"  # survive page switches
 
 
 def pending_upload() -> tuple[bytes | None, str]:
-    """Bytes of the uploaded file (or the sample) from session state, and a label."""
+    """Bytes and label of the readings in use (uploaded file or sample), from session state.
+
+    Stored outside the widget so they stay when the officer moves to another section.
+    """
+    return st.session_state.get(BYTES_KEY), st.session_state.get(NAME_KEY, "")
+
+
+def _store_upload() -> None:
     file = st.session_state.get(UPLOAD_KEY)
     if file is not None:
-        return file.getvalue(), file.name
-    if st.session_state.get(SAMPLE_KEY):
-        return repo_path(SAMPLE).read_bytes(), "sample file (invented values)"
-    return None, ""
+        st.session_state[BYTES_KEY], st.session_state[NAME_KEY] = file.getvalue(), file.name
 
 
 def _use_sample() -> None:
-    st.session_state[SAMPLE_KEY] = True
+    st.session_state[BYTES_KEY] = repo_path(SAMPLE).read_bytes()
+    st.session_state[NAME_KEY] = "sample file (invented values)"
 
 
 def _clear() -> None:
-    st.session_state[SAMPLE_KEY] = False
-    st.session_state.pop(UPLOAD_KEY, None)
+    for key in (BYTES_KEY, NAME_KEY, UPLOAD_KEY):
+        st.session_state.pop(key, None)
 
 
 def upload_panel(state: dict[str, Any], lang: str = "en") -> None:
     """Upload box (sidebar). `state` holds label, result (UploadResult), error."""
     label, result = state.get("label"), state.get("result")
     st.caption(i18n.t("up_help", lang))
-    st.file_uploader(i18n.t("up_drop", lang), type=["csv"], key=UPLOAD_KEY)
+    st.file_uploader(i18n.t("up_drop", lang), type=["csv"], key=UPLOAD_KEY,
+                     on_change=_store_upload)
     st.button(i18n.t("up_sample", lang), on_click=_use_sample, width="stretch")
     st.download_button(i18n.t("up_download", lang), repo_path(SAMPLE).read_bytes(),
                        "new_readings_sample.csv", mime="text/csv", width="stretch")

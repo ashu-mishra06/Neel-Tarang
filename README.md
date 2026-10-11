@@ -32,9 +32,11 @@ Run the tests with `pytest` (252 tests). Print the ranking in a terminal with
 
 ## What the officer sees
 
-The app opens in **Hindi**; switch to English in the sidebar. At the top:
-summary cards and a chart of *why* each ghat ranks where it does (before
-immersion vs worse during immersion).
+The app opens in **Hindi**; the **English** toggle sits top-right. A top
+navigation bar splits it into five sections: **Ghats** (landing page) · **Test
+planner** · **Brief** · **Add readings** · **Gaps & method**. The Ghats page
+starts with summary cards and a chart of *why* each ghat ranks where it does
+(before immersion vs worse during immersion).
 
 1. **Ranked ghats:** rank, tier (icon + text + colour), driver ("why"),
    confidence, and a one-line reason with its report page. Flags on the row:
@@ -53,7 +55,7 @@ immersion vs worse during immersion).
    No score and no tier.
 4. **Brief (हिन्दी / EN):** a one-page brief with copy and download (text or
    print-ready HTML). The Hindi brief has been reviewed by the team.
-5. **Re-score (week after, sidebar):** upload new readings in the same CSV columns
+5. **Re-score (week after, Add readings):** upload new readings in the same CSV columns
    (sample with invented values in `data/samples/`). The ranking updates, a
    "what changed" table shows rank/tier/score before -> after, and uploaded
    rows are marked "user-supplied". Bad files get a plain list of problems.

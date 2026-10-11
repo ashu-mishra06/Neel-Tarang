@@ -110,6 +110,15 @@ TEXT: dict[str, dict[str, str]] = {
 }
 
 TEXT.update({
+    "nav_ghats": {"en": "Ghats", "hi": "घाट"},
+    "nav_planner": {"en": "Test planner", "hi": "जाँच योजना"},
+    "nav_brief": {"en": "Brief", "hi": "सारांश"},
+    "nav_upload": {"en": "Add readings", "hi": "नई रीडिंग"},
+    "nav_gaps": {"en": "Gaps & method", "hi": "कमियाँ और तरीका"},
+    "lang_toggle": {"en": "English", "hi": "English"},
+    "in_use_banner": {"en": "Scores include uploaded readings from {label}. See Add readings.",
+                      "hi": "अंकों में {label} की जोड़ी गई रीडिंग शामिल हैं। 'नई रीडिंग' देखें।"},
+    "up_title": {"en": "Add new readings and re-score", "hi": "नई रीडिंग जोड़ें और दोबारा आँकें"},
     "up_help": {
         "en": "Same columns as the MPPCB CSV. Required: site, year, festival, phase, parameter, "
               "value (or flag). Uploaded rows are 'user-supplied' and never overwrite a report "

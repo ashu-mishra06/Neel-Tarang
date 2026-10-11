@@ -95,19 +95,16 @@ def how_to_read(rules: dict[str, Any], lang: str) -> None:
 
 def kpis(data: dict[str, Any], lang: str) -> None:
     scores = data["scores"]
-    values = [
+    html(ui.kpi_cards([
         (i18n.t("kpi_ranked", lang), len(scores.ranked)),
         (i18n.t("kpi_high", lang), sum(s.tier == "High" for s in scores.ranked)),
         (i18n.t("kpi_nobase", lang), len(scores.blind_spots)),
         (i18n.t("kpi_unpaired", lang), sum(len(s.unpaired_breaches) for s in scores.ranked)),
-    ]
-    for col, (label, value) in zip(st.columns(4), values, strict=True):
-        with col.container(border=True):
-            st.metric(label, value)
+    ]))
 
 
 def overview_chart(data: dict[str, Any], lang: str) -> None:
-    st.subheader(f"📊 {i18n.t('chart_title', lang)}")
+    html(f'<div class="vgw-section">{i18n.t("chart_title", lang)}</div>')
     labels = {"baseline": i18n.t("part_baseline", lang),
               "festival": i18n.t("part_festival", lang), "risk": i18n.t("risk", lang)}
     tiers = {k: i18n.tier(k, lang) for k in ("High", "Medium", "Low", "NoData")}
@@ -318,16 +315,40 @@ def method_tab(data: dict[str, Any]) -> None:
     st.markdown(method.read_text(encoding="utf-8") if method.exists() else "METHOD.md missing")
 
 
-def main() -> None:
-    st.set_page_config(page_title="Neel Tarang · नील तरंग", page_icon="🌊", layout="wide")
-    html(css())
-    with st.sidebar:
-        choice = st.radio(i18n.t("language", "hi"), ["हिन्दी", "English"], index=0,
-                          key=LANG_KEY)
-    lang = "hi" if choice == "हिन्दी" else "en"
+# ---------- pages (one per section in the top navigation) ----------
+
+
+def page_ghats(data: dict[str, Any], state: dict[str, Any], lang: str) -> None:
     html(ui.hero(lang))
-    if lang == "hi":
-        st.caption(i18n.t("ui_draft", lang))
+    if state.get("changes"):
+        st.info(i18n.t("in_use_banner", lang, label=state["label"]))
+    kpis(data, lang)
+    overview_chart(data, lang)
+    html(f'<div class="vgw-section">{i18n.t("tab_rank", lang)}</div>')
+    ranked_list(data, lang)
+
+
+def page_upload(state: dict[str, Any], lang: str) -> None:
+    html(f'<div class="vgw-section">{i18n.t("up_title", lang)}</div>')
+    left, right = st.columns([2, 3], gap="large")
+    with left:
+        upload_panel(state, lang)
+    with right:
+        if state.get("changes"):
+            changes_table(state, state["label"])
+
+
+def page_gaps(data: dict[str, Any], lang: str) -> None:
+    gaps_tab(data, lang)
+    st.divider()
+    method_tab(data)
+
+
+def main() -> None:
+    st.set_page_config(page_title="Neel Tarang · नील तरंग", page_icon="🌊", layout="wide",
+                       initial_sidebar_state="collapsed")
+    html(css())
+    lang = "en" if st.session_state.get(LANG_KEY) else "hi"
     mtime = RULES_PATH.stat().st_mtime_ns
     upload, label = pending_upload()
     state: dict[str, Any] = {"label": label}
@@ -336,27 +357,40 @@ def main() -> None:
     else:
         state.update(load_with_upload(mtime, upload))
         data = state["data"]
-    with st.sidebar:
-        st.divider()
-        st.markdown(f"**➕ {i18n.t('tab_upload', lang)}**")
-        upload_panel(state, lang)
-    kpis(data, lang)
-    ranking, brief, gaps = st.tabs([f"🏆 {i18n.t('tab_rank', lang)}",
-                                    f"📝 {i18n.t('tab_brief', lang)}",
-                                    f"⚑ {i18n.t('tab_gaps', lang)}"])
-    with ranking:
-        if state.get("changes"):
-            changes_table(state, label)
-        overview_chart(data, lang)
+
+    def ghats() -> None:
+        page_ghats(data, state, lang)
+
+    def planner() -> None:
         planner_panel(data, lang)
-        ranked_list(data, lang)
-    with brief:
+
+    def brief() -> None:
         brief_tab(data, lang)
-    with gaps:
-        gaps_tab(data, lang)
-        st.divider()
-        method_tab(data)
+
+    def readings() -> None:
+        page_upload(state, lang)
+
+    def gaps() -> None:
+        page_gaps(data, lang)
+
+    nav = st.navigation([
+        st.Page(ghats, title=i18n.t("nav_ghats", lang), icon="🏆", url_path="ghats",
+                default=True),
+        st.Page(planner, title=i18n.t("nav_planner", lang), icon="🧪", url_path="planner"),
+        st.Page(brief, title=i18n.t("nav_brief", lang), icon="📝", url_path="brief"),
+        st.Page(readings, title=i18n.t("nav_upload", lang), icon="➕", url_path="readings"),
+        st.Page(gaps, title=i18n.t("nav_gaps", lang), icon="🚩", url_path="gaps"),
+    ], position="top")
+    left, right = st.columns([5, 1], vertical_alignment="center")
+    with left:
+        html(ui.brand())
+    with right:
+        st.toggle("English", key=LANG_KEY, help="हिन्दी ⇄ English")
+    if lang == "hi":
+        st.caption(i18n.t("ui_draft", lang))
+    nav.run()
     st.caption(i18n.t("footer", lang))
 
 
-main()
+if __name__ == "__main__":
+    main()

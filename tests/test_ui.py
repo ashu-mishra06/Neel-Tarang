@@ -56,7 +56,7 @@ def test_app_runs_and_shows_core_content() -> None:
         assert needle in hindi, needle
     assert len(at.tabs) >= 3
     assert len(at.get("arrow_vega_lite_chart")) >= 1  # overview chart + per-ghat charts
-    at.sidebar.radio(key="lang").set_value("English").run()
+    at.toggle(key="lang").set_value(True).run()  # header toggle -> English
     assert not at.exception
     english = page()
     for needle in ("Durga visarjan: 20 Oct 2026 | Standard: CPCB class B", "No baseline",
@@ -81,11 +81,30 @@ def test_hindi_reasons_use_engine_numbers() -> None:
 @pytest.mark.skipif(not repo_path(load_rules()["data"]["readings_csv"]).exists(),
                     reason="organisers' CSV not present")
 def test_brief_defaults_to_hindi() -> None:
+    """The Brief section opens in Hindi when the interface is in Hindi (the default)."""
     from streamlit.testing.v1 import AppTest
 
-    at = AppTest.from_file(str(repo_path("app.py")), default_timeout=120).run()
-    assert at.radio(key="brief_lang").value.startswith("हिन्दी")
+    def brief_section() -> None:
+        import app
+        from scoring.config import RULES_PATH
+
+        app.brief_tab(app.load_all(RULES_PATH.stat().st_mtime_ns), "hi")
+
+    at = AppTest.from_function(brief_section, default_timeout=120).run()
+    assert not at.exception
+    assert at.radio(key="brief_lang").value == "हिन्दी"
     assert "घुलित ऑक्सीजन" in at.code[0].value
+
+
+def test_top_navigation_has_five_sections() -> None:
+    import inspect
+
+    import app
+
+    source = inspect.getsource(app.main)
+    assert 'position="top"' in source
+    for path in ("ghats", "planner", "brief", "readings", "gaps"):
+        assert f'url_path="{path}"' in source
 
 
 def test_rules_reload_when_file_changes(tmp_path) -> None:
