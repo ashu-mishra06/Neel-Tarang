@@ -18,6 +18,11 @@ TIER = {
     "NoData": {"fg": "#5F5E5A", "bg": "#F1EFE8", "icon": "○", "label": "No baseline"},
 }
 MISSING = {"fg": "#5F5E5A", "bg": "#F1EFE8", "icon": "⊘"}
+# Chart colours (blue = before immersion, orange = worse during; red dashed = limit).
+CHART = {"baseline": "#185FA5", "festival": "#D9822B", "limit": "#A32D2D",
+         "worse": "#C0392B", "better": "#3B6D11"}
+HERO = {"from": "#0B3D6B", "to": "#1A7FB5", "fg": "#FFFFFF"}
+SHADOW = "0 1px 3px rgba(16, 24, 40, 0.10), 0 1px 2px rgba(16, 24, 40, 0.06)"
 CONFIDENCE_ICON = {"High": "●●●", "Medium": "●●○", "Low": "●○○"}
 
 TYPE_SCALE = [12, 14, 16, 20, 24]  # px; weights 400 and 500 only
@@ -33,13 +38,22 @@ def css() -> str:
     missing = MISSING
     return f"""
 <style>
+.vgw-hero {{ background:linear-gradient(120deg, {HERO['from']}, {HERO['to']});
+  color:{HERO['fg']}; padding:{s[4]}px; border-radius:{RADIUS_CARD * 2}px;
+  margin-bottom:{s[3]}px; box-shadow:{SHADOW}; }}
+.vgw-hero h1 {{ color:{HERO['fg']}; font-size:32px; font-weight:500; margin:0; padding:0; }}
+.vgw-hero p {{ color:{HERO['fg']}; font-size:{t[2]}px; margin:{s[1]}px 0 0 0; opacity:0.95; }}
+.vgw-hero .vgw-chipline {{ display:inline-block; margin-top:{s[2]}px; padding:{s[1]}px {s[2]}px;
+  border-radius:999px; background:rgba(255,255,255,0.16); font-size:{t[1]}px; }}
 .vgw-banner {{ background:{c['surface']}; color:{c['text']}; padding:{s[2]}px {s[3]}px;
   border-radius:{RADIUS_CARD}px; font-size:{t[2]}px; font-weight:500; margin-bottom:{s[3]}px; }}
-.vgw-row {{ border:1px solid {c['border']}; border-radius:{RADIUS_CARD}px;
-  padding:{s[2]}px {s[3]}px; margin:{s[1]}px 0; background:{c['bg']}; display:flex;
-  gap:{s[3]}px; }}
+.vgw-row {{ border:1px solid {c['border']}; border-radius:{RADIUS_CARD * 1.5}px;
+  padding:{s[3]}px; margin:{s[3]}px 0 {s[1]}px 0; background:{c['bg']}; display:flex;
+  gap:{s[3]}px; box-shadow:{SHADOW}; }}
 .vgw-row.lowconf {{ border:2px dashed {c['muted']}; }}
-.vgw-rank {{ font-size:{t[4]}px; font-weight:500; color:{c['muted']}; min-width:28px; }}
+.vgw-rank {{ font-size:{t[3]}px; font-weight:500; color:{HERO['fg']}; background:{HERO['from']};
+  min-width:36px; height:36px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; flex-shrink:0; }}
 .vgw-title {{ font-size:{t[3]}px; font-weight:500; color:{c['text']}; }}
 .vgw-wb {{ font-size:{t[1]}px; color:{c['muted']}; font-weight:400; margin-left:{s[1]}px; }}
 .vgw-chips {{ display:flex; flex-wrap:wrap; gap:{s[1]}px; margin:{s[1]}px 0; }}

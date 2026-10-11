@@ -16,7 +16,7 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
-from scoring.brief import build_briefs
+from scoring.brief import build_briefs, fact_sentence, key_fact
 from scoring.config import RULES_PATH, load_rules, repo_path
 from scoring.engine import score_all
 from scoring.evidence import evidence_for_frame, render_page_image
@@ -25,11 +25,12 @@ from scoring.limits import evaluate_frame, load_limits
 from scoring.loader import load_readings
 from scoring.reasons import cite
 from scoring.rescore import rescore, validate_upload
+from ui import charts, i18n
 from ui import components as ui
 from ui.theme import css
-from ui.upload import pending_upload, upload_panel
+from ui.upload import changes_table, pending_upload, upload_panel
 
-BANNER = "Durga visarjan: 20 Oct 2026 | Standard: CPCB class B | Data: MPPCB 2023-2025"
+LANG_KEY = "lang"
 
 
 def build_data(df: pd.DataFrame, rules: dict[str, Any], limits: Any,
@@ -84,39 +85,57 @@ def fmt(value: float | None, digits: int = 2) -> str:
 # ---------- ranked list ----------
 
 
-def how_to_read(rules: dict[str, Any]) -> None:
-    t, d = rules["scoring"]["tiers"], rules["scoring"]["driver"]
-    with st.expander("How to read this list"):
-        st.markdown(
-            f"- **Tier** comes from the risk score (0-100): High ≥ {t['high']:g}, "
-            f"Medium ≥ {t['medium']:g}, else Low. A reported dissolved oxygen of 0 mg/l lifts "
-            "a ghat to at least High (team's own flag, not a CPCB limit).\n"
-            "- **Driver** says *why*: *poor before* = water already breaches class B before "
-            f"immersion (baseline ≥ {d['baseline']:g}); *worsens* = matched before/during "
-            "readings get worse by at least 1 mg/l DO or BOD, or cross the limit.\n"
-            "- **Confidence** = share of expected readings that exist, lowered for missing "
-            "tables, uncertain site names and breaches that cannot be compared. A data hole "
-            "never counts as clean.\n"
-            "- A **dashed outline** marks low confidence; **≈** marks a score near a tier line.\n"
-            "- Readings are compared with CPCB class B limits only. No health conclusions.")
+def how_to_read(rules: dict[str, Any], lang: str) -> None:
+    tiers = rules["scoring"]["tiers"]
+    with st.expander(f"ℹ️ {i18n.t('how_title', lang)}"):
+        st.markdown(i18n.t("how_body", lang, high=f"{tiers['high']:g}",
+                           medium=f"{tiers['medium']:g}"))
 
 
-def ranked_list(data: dict[str, Any]) -> None:
+def kpis(data: dict[str, Any], lang: str) -> None:
+    scores = data["scores"]
+    values = [
+        (i18n.t("kpi_ranked", lang), len(scores.ranked)),
+        (i18n.t("kpi_high", lang), sum(s.tier == "High" for s in scores.ranked)),
+        (i18n.t("kpi_nobase", lang), len(scores.blind_spots)),
+        (i18n.t("kpi_unpaired", lang), sum(len(s.unpaired_breaches) for s in scores.ranked)),
+    ]
+    for col, (label, value) in zip(st.columns(4), values, strict=True):
+        with col.container(border=True):
+            st.metric(label, value)
+
+
+def overview_chart(data: dict[str, Any], lang: str) -> None:
+    st.subheader(f"📊 {i18n.t('chart_title', lang)}")
+    labels = {"baseline": i18n.t("part_baseline", lang),
+              "festival": i18n.t("part_festival", lang), "risk": i18n.t("risk", lang)}
+    tiers = {k: i18n.tier(k, lang) for k in ("High", "Medium", "Low", "NoData")}
+    st.vega_lite_chart(charts.risk_breakdown(data["scores"], data["rules"], labels, tiers),
+                       width="stretch")
+    st.caption(i18n.t("chart_caption", lang))
+
+
+def row_reason(s: Any, data: dict[str, Any], lang: str) -> str:
+    """English: the engine's one-line reason. Hindi: the reviewed brief sentence."""
+    if lang == "en":
+        return s.reason_short
+    return fact_sentence(key_fact(s, data["limits"]), "hi")
+
+
+def ranked_list(data: dict[str, Any], lang: str) -> None:
     scores, rules = data["scores"], data["rules"]
-    how_to_read(rules)
+    how_to_read(rules, lang)
     for s in scores.ranked:
-        html(ui.ghat_row(s))
-        with st.expander(f"Details and evidence: {s.ghat}"):
-            ghat_detail(s, data)
-    t = rules["scoring"]["tiers"]
-    st.caption(f"Tier lines: Medium ≥ {t['medium']:g}, High ≥ {t['high']:g} (risk score). "
-               f"Tiers show relative concern among these {len(scores.ranked)} ghats, not a safety "
-               "certification.")
+        html(ui.ghat_row(s, lang, row_reason(s, data, lang)))
+        with st.expander(f"🔍 {i18n.t('details', lang)}: {s.ghat}"):
+            ghat_detail(s, data, lang)
+    tiers = rules["scoring"]["tiers"]
+    st.caption(i18n.t("tier_note", lang, medium=f"{tiers['medium']:g}",
+                      high=f"{tiers['high']:g}", n=len(scores.ranked)))
     if scores.blind_spots:
-        st.subheader("No baseline")
-        st.caption("Designated or listed ghats with no usable past readings. Not ranked.")
+        st.subheader(i18n.t("no_baseline_title", lang))
         for b in scores.blind_spots:
-            html(ui.no_baseline_card(b.ghat, b.why))
+            html(ui.no_baseline_card(b.ghat, b.why, lang))
 
 
 # ---------- detail ----------
@@ -188,76 +207,93 @@ def evidence_section(rows: list[Any], rules: dict[str, Any], show_images: bool) 
                     st.info(f"Page image not available: {err}")
 
 
-def ghat_detail(s: Any, data: dict[str, Any]) -> None:
-    """Detail for one ranked ghat (shown inside its expander)."""
+def pairs_charts(s: Any, data: dict[str, Any], lang: str) -> None:
+    st.caption(i18n.t("pairs_chart_caption", lang))
+    unpaired = ("no earlier reading in this table" if lang == "en"
+                else "इस तालिका में पहले की रीडिंग नहीं")
+    for name, limit in data["limits"].items():
+        spec = charts.pairs_chart(s, name, limit, unpaired,
+                                  *(("बिगड़ा", "वैसा ही या बेहतर") if lang == "hi" else ()))
+        st.markdown(f"**{i18n.parameter(name, lang)}**")
+        if spec is None:
+            st.caption(i18n.t("no_pairs", lang))
+        else:
+            st.vega_lite_chart(spec, width="stretch")
+
+
+def ghat_detail(s: Any, data: dict[str, Any], lang: str = "en") -> None:
+    """Detail for one ranked ghat (inside its expander), split into four tabs."""
     rules, key = data["rules"], f"g{s.rank}"
     if s.site_match_uncertain:
         st.warning(s.site_match_note)
     cols = st.columns(3)
-    cols[0].metric("Risk score", f"{s.risk_score:.1f}", help="Decides the tier")
-    cols[1].metric("Baseline (before immersion)", fmt(s.baseline, 3),
-                   help="0.5 x breach rate + 0.5 x mean exceedance, pre-immersion readings")
-    cols[2].metric("Festival effect (worst parameter)", fmt(s.festival, 3),
-                   help="How much readings got worse during/after immersion")
-    st.markdown(driver_explanation(s))
-    st.markdown(f"**Why:** {s.reason}")
-    st.markdown("**By parameter**")
-    st.dataframe(parameter_table(s), hide_index=True, width="stretch")
-    if s.matched_pairs:
-        st.markdown("**Matched before/during pairs** (same table)")
-        st.dataframe(pairs_table(s), hide_index=True, width="stretch")
-    if s.unpaired_breaches:
-        st.markdown("**Breaches that cannot be compared** (not in the score; lower confidence)")
-        for u in s.unpaired_breaches:
-            unit = f" {u['unit']}" if u["unit"] else ""
-            st.markdown(f"- {u['parameter']} {u['value']:g}{unit}, {u['festival']} {u['year']} "
-                        f"{u['phase']}, {cite(u['year'], u['source_page'])} - {u['why']}")
-    if s.critical:
-        st.markdown(f"**{s.critical.note}**")
-        st.markdown("\n".join(f"- {r['festival']} {r['year']} {r['phase']}, "
-                              f"{cite(r['year'], r['source_page'])}"
-                              for r in s.critical.readings))
-    confidence_block(s)
-    for g in [g for g in data["gaps"] if s.ghat in g.ghats]:
-        html(ui.gap_card(g))
-    st.markdown("**Evidence** - every reading, with the report page it came from")
-    scope = st.radio("Show", ["Scored parameters (pH, DO, BOD)", "All parameters"],
-                     horizontal=True, key=f"scope_{key}")
-    show_images = st.toggle("Show report page images", value=s.rank == 1, key=f"img_{key}")
-    rows = data["evidence"].get(s.ghat, [])
-    if scope.startswith("Scored"):
-        rows = [r for r in rows if r.scored]
-    evidence_section(rows, rules, show_images)
+    cols[0].metric(i18n.t("risk", lang), f"{s.risk_score:.1f}")
+    cols[1].metric(i18n.t("part_baseline", lang), fmt(s.baseline, 3))
+    cols[2].metric(i18n.t("part_festival", lang), fmt(s.festival, 3))
+    chart_tab, numbers_tab, pages_tab, gaps_tab_ = st.tabs([
+        f"📈 {i18n.t('d_chart', lang)}", f"🔢 {i18n.t('d_numbers', lang)}",
+        f"📄 {i18n.t('d_evidence', lang)}", f"⚑ {i18n.t('d_gaps', lang)}"])
+    with chart_tab:
+        pairs_charts(s, data, lang)
+    with numbers_tab:
+        st.markdown(f"**{i18n.t('full_reason', lang)}:** {s.reason}")
+        st.markdown(driver_explanation(s))
+        st.dataframe(parameter_table(s), hide_index=True, width="stretch")
+        if s.matched_pairs:
+            st.dataframe(pairs_table(s), hide_index=True, width="stretch")
+        if s.unpaired_breaches:
+            st.markdown("**Breaches that cannot be compared** (not in the score; lower confidence)")
+            for u in s.unpaired_breaches:
+                unit = f" {u['unit']}" if u["unit"] else ""
+                st.markdown(f"- {u['parameter']} {u['value']:g}{unit}, {u['festival']} "
+                            f"{u['year']} {u['phase']}, {cite(u['year'], u['source_page'])} - "
+                            f"{u['why']}")
+        if s.critical:
+            st.markdown(f"**{s.critical.note}**")
+            st.markdown("\n".join(f"- {r['festival']} {r['year']} {r['phase']}, "
+                                  f"{cite(r['year'], r['source_page'])}"
+                                  for r in s.critical.readings))
+        confidence_block(s)
+    with pages_tab:
+        scope = st.radio("Show", ["Scored parameters (pH, DO, BOD)", "All parameters"],
+                         horizontal=True, key=f"scope_{key}")
+        show_images = st.toggle("Show report page images", value=s.rank == 1,
+                                key=f"img_{key}")
+        rows = data["evidence"].get(s.ghat, [])
+        if scope.startswith("Scored"):
+            rows = [r for r in rows if r.scored]
+        evidence_section(rows, rules, show_images)
+    with gaps_tab_:
+        for g in [g for g in data["gaps"] if s.ghat in g.ghats]:
+            html(ui.gap_card(g, lang))
 
 
-def brief_tab(data: dict[str, Any]) -> None:
-    lang = st.radio("Language / भाषा", ["हिन्दी (draft - needs human review)", "English"],
-                    index=0, horizontal=True, key="brief_lang")
-    code = "en" if lang == "English" else "hi"
+def brief_tab(data: dict[str, Any], lang: str) -> None:
+    options = ["हिन्दी", "English"] if lang == "hi" else ["English", "हिन्दी"]
+    choice = st.radio(i18n.t("brief_lang", lang), options, horizontal=True, key="brief_lang")
+    code = "hi" if choice == "हिन्दी" else "en"
     brief = data["briefs"][code]
     if code == "hi":
-        st.warning("Hindi text is a machine draft until a fluent reviewer signs off "
-                   "(briefs/hi_review_status.md). Numbers are identical to the English brief.")
-    st.caption("Copy: use the copy icon at the top right of the box.")
+        st.success(i18n.t("brief_reviewed", lang))
+    st.caption(i18n.t("copy_hint", lang))
     st.code(brief["text"], language=None, wrap_lines=True)
     cols = st.columns(2)
-    cols[0].download_button("Download text", brief["text"].encode("utf-8"),
-                            f"visarjan_brief_{code}.txt", mime="text/plain")
-    cols[1].download_button("Download print-ready HTML", brief["html"].encode("utf-8"),
-                            f"visarjan_brief_{code}.html", mime="text/html")
+    cols[0].download_button(i18n.t("dl_text", lang), brief["text"].encode("utf-8"),
+                            f"neel_tarang_brief_{code}.txt", mime="text/plain")
+    cols[1].download_button(i18n.t("dl_html", lang), brief["html"].encode("utf-8"),
+                            f"neel_tarang_brief_{code}.html", mime="text/html")
 
 
 # ---------- gaps and method ----------
 
 
-def gaps_tab(data: dict[str, Any]) -> None:
-    st.markdown("Everything the data does not cover. Missing data is shown as missing, "
-                "never as clean.")
+def gaps_tab(data: dict[str, Any], lang: str = "en") -> None:
+    st.markdown(i18n.t("gaps_intro", lang))
     st.markdown("**Confidence levels:** High ≥ 90% of expected readings, Medium ≥ 70%, "
                 "else Low; capped at Medium if the latest Durga table is missing or the site "
                 "name is uncertain; one level lower if a breach cannot be compared.")
     for g in data["gaps"]:
-        html(ui.gap_card(g))
+        html(ui.gap_card(g, lang))
 
 
 def method_tab(data: dict[str, Any]) -> None:
@@ -276,10 +312,15 @@ def method_tab(data: dict[str, Any]) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Neel Tarang", page_icon="🌊", layout="wide")
+    st.set_page_config(page_title="Neel Tarang · नील तरंग", page_icon="🌊", layout="wide")
     html(css())
-    st.title("Neel Tarang")
-    html(f'<div class="vgw-banner">{BANNER}</div>')
+    with st.sidebar:
+        choice = st.radio(i18n.t("language", "hi"), ["हिन्दी", "English"], index=0,
+                          key=LANG_KEY)
+    lang = "hi" if choice == "हिन्दी" else "en"
+    html(ui.hero(lang))
+    if lang == "hi":
+        st.caption(i18n.t("ui_draft", lang))
     mtime = RULES_PATH.stat().st_mtime_ns
     upload, label = pending_upload()
     state: dict[str, Any] = {"label": label}
@@ -288,21 +329,26 @@ def main() -> None:
     else:
         state.update(load_with_upload(mtime, upload))
         data = state["data"]
-    ranking, brief, gaps = st.tabs(["Ranked ghats", "Brief (हिन्दी / EN)", "Gaps & method"])
+    with st.sidebar:
+        st.divider()
+        st.markdown(f"**➕ {i18n.t('tab_upload', lang)}**")
+        upload_panel(state, lang)
+    kpis(data, lang)
+    ranking, brief, gaps = st.tabs([f"🏆 {i18n.t('tab_rank', lang)}",
+                                    f"📝 {i18n.t('tab_brief', lang)}",
+                                    f"⚑ {i18n.t('tab_gaps', lang)}"])
     with ranking:
-        upload_panel(state)
         if state.get("changes"):
-            st.info(f"Showing scores that include uploaded readings from {label} "
-                    "(marked 'user-supplied' in the evidence).")
-        ranked_list(data)
+            changes_table(state, label)
+        overview_chart(data, lang)
+        ranked_list(data, lang)
     with brief:
-        brief_tab(data)
+        brief_tab(data, lang)
     with gaps:
-        gaps_tab(data)
+        gaps_tab(data, lang)
         st.divider()
         method_tab(data)
-    st.caption("Readings compared with CPCB class B limits only; no health conclusions. "
-               "Persona inferred from the problem statement, not from interviews.")
+    st.caption(i18n.t("footer", lang))
 
 
 main()

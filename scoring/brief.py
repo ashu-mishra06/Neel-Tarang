@@ -120,3 +120,27 @@ def build_briefs(scores: Scores | None = None) -> dict[str, dict[str, str]]:
 if __name__ == "__main__":
     for lang, out in build_briefs().items():
         print(f"===== {lang} ({len(out['text'].split())} words) =====\n{out['text']}")
+
+
+def fact_sentence(fact: dict[str, Any], lang: str) -> str:
+    """One key-number sentence (same wording as the brief), in "en" or "hi"."""
+    if fact["kind"] == "critical":
+        if lang == "hi":
+            src = "; ".join(f"रिपोर्ट {s['year']} पृ.{s['pages']}" for s in fact["sources"])
+            return f"घुलित ऑक्सीजन (DO) {fact['count']} बार 0 mg/l दर्ज ({src})।"
+        src = "; ".join(f"Report {s['year']} p.{s['pages']}" for s in fact["sources"])
+        return f"Dissolved oxygen reported at 0 mg/l {fact['count']} times ({src})."
+    if fact["kind"] == "pair":
+        if lang == "hi":
+            return (f"विसर्जन के दौरान {HI['parameter'][fact['parameter']]} {fact['pre']} से "
+                    f"{HI['direction'][fact['direction']]} {fact['during']} {fact['unit']} हुआ "
+                    f"({HI['festival'][fact['festival']]} {fact['year']}, रिपोर्ट {fact['year']} "
+                    f"पृ.{fact['page']})।")
+        return (f"{fact['parameter']} {fact['direction']} from {fact['pre']} to {fact['during']} "
+                f"{fact['unit']} during immersion ({fact['festival']} {fact['year']}, "
+                f"Report {fact['year']} p.{fact['page']}).")
+    if lang == "hi":
+        return (f"विसर्जन से पहले की {fact['valid']} में से {fact['breaches']} रीडिंग में "
+                f"{HI['parameter'][fact['parameter']]} सीमा से बाहर।")
+    return (f"{fact['parameter']} breached its limit in {fact['breaches']} of {fact['valid']} "
+            "pre-immersion readings.")

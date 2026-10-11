@@ -1,6 +1,10 @@
 # Hindi review status
 
-**Status: NOT REVIEWED - draft by Claude (11 Oct 2026). Do not forward as final.**
+**Status: reviewed** - Hindi brief reviewed by Ashutosh Mishra (team), 11 Oct 2026, as reported
+to Claude in the build session. Drafted by Claude.
+
+Not yet reviewed: the Hindi *interface* text added later the same day (`ui/i18n.py`,
+labels, help text and gap explanations). It is marked as a draft in the app.
 
 - `briefs/hi.j2`: every line is a machine draft and needs review by N1 (a
   fluent Hindi reader on the team). The rendered brief carries a "Draft -

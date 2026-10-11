@@ -8,6 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from scoring.config import repo_path
+from ui import i18n
 
 SAMPLE = "data/samples/new_readings_sample.csv"
 UPLOAD_KEY = "upload_file"
@@ -33,32 +34,31 @@ def _clear() -> None:
     st.session_state.pop(UPLOAD_KEY, None)
 
 
-def upload_panel(state: dict[str, Any]) -> None:
-    """Render the upload box. `state` holds label, result (UploadResult), changes, error."""
+def upload_panel(state: dict[str, Any], lang: str = "en") -> None:
+    """Upload box (sidebar). `state` holds label, result (UploadResult), error."""
     label, result = state.get("label"), state.get("result")
-    expanded = bool(label)
-    with st.expander("Add new readings and re-score (same columns as the MPPCB CSV)",
-                     expanded=expanded):
-        st.caption("Required columns: site, year, festival, phase, parameter, value (or flag). "
-                   "Uploaded rows are tagged 'user-supplied' and never overwrite a report "
-                   "value. Nothing leaves this computer.")
-        st.file_uploader("Drop a CSV here", type=["csv"], key=UPLOAD_KEY)
-        cols = st.columns(3)
-        cols[0].button("Try the sample file", on_click=_use_sample,
-                       help="Durga 2026 readings with INVENTED values, for demonstration")
-        cols[1].download_button("Download the sample CSV", repo_path(SAMPLE).read_bytes(),
-                                "new_readings_sample.csv", mime="text/csv")
-        if label:
-            cols[2].button("Remove uploaded readings", on_click=_clear)
-        if state.get("error"):
-            st.error(state["error"])
-        elif result is not None and not result.ok:
-            st.error(f"Could not use **{label}**. Please fix these and upload again:\n\n"
-                     + "\n".join(f"- {e}" for e in result.errors))
-        elif result is not None:
-            st.success(f"Re-scored with **{label}**. " + " ".join(result.notes))
-            changes = pd.DataFrame(state["changes"])
-            changed = changes[changes["changed"]].drop(columns="changed")
-            st.markdown("**What changed** (before → after)")
-            st.dataframe(changed if len(changed) else changes.drop(columns="changed"),
-                         hide_index=True, width="stretch")
+    st.caption(i18n.t("up_help", lang))
+    st.file_uploader(i18n.t("up_drop", lang), type=["csv"], key=UPLOAD_KEY)
+    st.button(i18n.t("up_sample", lang), on_click=_use_sample, width="stretch")
+    st.download_button(i18n.t("up_download", lang), repo_path(SAMPLE).read_bytes(),
+                       "new_readings_sample.csv", mime="text/csv", width="stretch")
+    if label:
+        st.button(i18n.t("up_remove", lang), on_click=_clear, width="stretch")
+    if state.get("error"):
+        st.error(state["error"])
+    elif result is not None and not result.ok:
+        st.error(f"Could not use **{label}**. Please fix these and upload again:\n\n"
+                 + "\n".join(f"- {e}" for e in result.errors))
+    elif result is not None:
+        st.success(f"Re-scored with **{label}**. " + " ".join(result.notes))
+
+
+def changes_table(state: dict[str, Any], label: str) -> None:
+    """'What changed' after a successful upload (shown above the ranking)."""
+    changes = pd.DataFrame(state["changes"])
+    changed = changes[changes["changed"]].drop(columns="changed")
+    st.info(f"Showing scores that include uploaded readings from {label} "
+            "(marked 'user-supplied' in the evidence).")
+    st.markdown("**What changed** (before → after)")
+    st.dataframe(changed if len(changed) else changes.drop(columns="changed"),
+                 hide_index=True, width="stretch")
