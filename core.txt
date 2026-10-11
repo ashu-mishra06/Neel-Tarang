@@ -1,0 +1,761 @@
+================================================================================
+CORE.TXT - VISARJAN GHAT WATCH (Track 2)
+Claude Impact Lab x Cerebras Cafe Compute, Bhopal - Sunday 11 Oct 2026
+Master brief for Claude Code. Read fully before writing any code.
+================================================================================
+
+--------------------------------------------------------------------------------
+0. HOW CLAUDE CODE SHOULD USE THIS FILE
+--------------------------------------------------------------------------------
+You are Claude Code working in the root of the team's public GitHub repo.
+This file is the single source of truth for WHAT to build and in WHAT ORDER.
+
+RULES OF WORK
+ 1. Work LEVEL BY LEVEL (Section 5). Do not start Level N+1 until Level N's
+    acceptance checks pass. Commit once per level: "L<N>: <summary>".
+ 2. Never edit the organisers' original files in data/. Put derived output in
+    data/derived/.
+ 3. No API keys, tokens or secrets in code. Use environment variables and a
+    committed .env.example. Run a secret scan before every push.
+ 4. The core product must work with NO network and NO API key.
+ 5. Never let an LLM compute or state a number. Numbers come from scoring/ only.
+ 6. Missing data is shown as missing. Never count it as clean. (Appendix C.)
+ 7. Do not claim health effects. Report readings against limits only.
+ 8. Code must be written after 10:15 AM on 11 Oct 2026 (event rule). Do not
+    paste in code from pre-existing personal projects.
+ 9. When a decision is marked OPEN in Section 8, choose the default given,
+    write the choice into docs/METHOD.md, and keep it tunable in rules.yaml.
+10. Keep code readable: type hints, short functions, docstrings. The code is
+    offered to the Government of Madhya Pradesh through MPSeDC.
+11. After each level, print a 5-line status: done / tests / open issues /
+    next level / blockers.
+12. ENHANCEMENT GATE: Level 7 (enhancements 7A-7D) may start ONLY after gates
+    G1-G6 are all green. The statewide benchmark (7D) is built LAST and may
+    be cut. HARD CUT LINE: if Level 8 (Ship) has not started by 15:00, stop
+    all enhancement work, revert unfinished enhancement code (keep it on a
+    branch), and ship. Enhancements never change the core ranking.
+
+DEFINITION OF DONE FOR THE WHOLE PROJECT: Appendix E checklist all ticked.
+
+--------------------------------------------------------------------------------
+1. IDEA (CURATED)
+--------------------------------------------------------------------------------
+ONE USER   : BMC (Bhopal Municipal Corporation) officer planning Durga visarjan.
+ONE DATE   : Durga visarjan on 20 Oct 2026 (9 days after the event).
+ONE OUTCOME: The officer opens one screen, sees which ghats are riskiest and
+             WHY, can trace every number to the report page, and forwards a
+             short Hindi + English brief.
+
+THE CORE IDEA - "rank by WHY a ghat is risky, not just HOW risky"
+Each ghat's risk is split into two parts and tied to different actions:
+  - BASELINE problem : water already breaches CPCB class B limits BEFORE
+                       immersion (pre phase). Needs lake/kund-level attention.
+  - FESTIVAL effect  : water gets worse during/after immersion compared with
+                       pre. Needs aeration / cleaning / testing on the day.
+Every ghat also carries a CONFIDENCE rating, so a data hole never looks like
+safety.
+
+WHY THIS IS THE INSIGHT (descriptive pre-check on the organisers' CSV; small
+samples; a pattern to explore, NOT a finding to publish):
+  - Bairagarh kund: mean DO ~3.8 mg/l pre, ~2.2 during. Poor already, worse
+    during. DO read 0 mg/l four times (2023 Ganesh after; 2023 Durga pre and
+    during; 2025 Ganesh during).
+  - Malikhedi kund: mean DO ~5.4 pre, ~4.0 during. Immersion pushes it under
+    the 5 mg/l limit.
+  - Hathaikheda: DO stays healthy (~7-8 mg/l) but BOD rises ~5.5 pre to ~8.4
+    during. A different failure mode.
+  - BOD breaches the 3 mg/l limit in ~80-100% of PRE readings at most ghats,
+    so BOD alone would rank mostly by baseline. Hence the split.
+
+FEATURES (priority order)
+  F1  Ranked ghat list with plain-words reason per ghat.
+  F2  Evidence click-through: every number -> report, year, page (+ page image).
+  F3  Gaps + confidence beside every rank; blind-spot panel.
+  F4  Bilingual (EN/HI) one-page forwardable brief, dated for 20 Oct 2026.
+  F5  Re-score: upload new readings (same CSV columns) -> ranking updates.
+  F6  Method note + gap register (docs/METHOD.md), derived data export.
+  ENHANCEMENTS (Level 7, only after gates G1-G6 are green):
+  F7  Persistence badge: "breached in X of Y tables" - repeat vs one-off.
+  F8  Test planner: "I can test N ghats before 20 Oct" -> which ones, why.
+  F9  Share-ready output: WhatsApp-style plain text + image card (EN/HI).
+  F10 Statewide benchmark: where each ghat sits among other MP immersion
+      sites. CONTEXT ONLY; never changes the ranking.
+  STRETCH (Level 9, only after ship): lake-monitoring cross-check (20-min
+  feasibility check first); map view; grounded "ask the data" box (optional,
+  off by default, needs an API key at run time).
+
+OUT OF SCOPE (would lose points): single opaque risk score; health-risk
+claims; forecasting 2026 values; login/portal/multi-user; using the statewide
+file to rank or score Bhopal ghats (benchmark context only, F10); treating
+blanks as clean; BDL as zero.
+
+--------------------------------------------------------------------------------
+2. RESEARCH DONE
+--------------------------------------------------------------------------------
+2.1 REPO AND DATA AUDIT (verified by running code on the CSV)
+  - data/bhopal_ghats_2023_2025.csv : 1,524 rows, 7 ghats, 3 years, Ganesh +
+    Durga, phases pre/during/after. Organisers spot-checked 6 tables vs PDFs.
+  - Core CPCB class B parameters scored: pH (6.5-8.5), Dissolved oxygen
+    (>=5 mg/l), BOD (<=3 mg/l). Expected 120 cells per parameter
+    (40 ghat-festival-years x 3 phases).
+  - GOLDEN NUMBERS reproduced from the CSV: DO 116 valid readings, 42 below 5;
+    BOD 112 valid readings, 100 above 3. The engine MUST reproduce these.
+  - Missing flags on core parameters: BOD 8 'not sampled'; DO 4; pH 1 plus
+    2 '*' and 2 '**'. BDL appears ONLY on metals (Cr 65, Pb 52, Cu 36, Zn 21),
+    which have no class B limit.
+  - Missing coverage: Bairagarh and Malikhedi have NO Durga 2025 table.
+    Each has ~12% 'not sampled' cells overall.
+  - source_page ranges (PDF page): 2023: 26-61, 2024: 23-72, 2025: 28-65.
+  - Units are ASSUMED by the organisers (reports print none).
+  - Rani Kamlapati ghat / Kamla Park kund has match confidence 'medium'
+    (Ganesh tables say Kamla Park kund; Durga tables say Lower Lake ghat; may
+    be two places).
+  - Only 4 metals tested (Cr, Pb, Zn, Cu). No class B limit for them.
+  - data/mp_immersion_sites_2023_2025.csv (21,600 rows) is less checked; 879
+    rows have needs_check. USED ONLY for the context benchmark (F10) after
+    cleaning. Audit (verified by running code):
+      * 20,721 rows have a readable site name (needs_check empty); ~400
+        distinct printed site names.
+      * Valid readings (readable names): DO 1,476 with ~16% below 5 mg/l;
+        BOD 1,468 with ~27% above 3 mg/l. Bhopal ghats: ~36% (42/116) and
+        ~89% (100/112). Descriptive only; different water bodies; overlap
+        because R.O. Bhopal rows include the Bhopal ghats themselves.
+      * regional_office labels are inconsistent (e.g. "R.O.Jabalpur" vs
+        "R.O. Jabalpur"; Singrouli/Singrauli; Chhindwada/Chhindwara).
+      * ~108 rows are same-page duplicates; tables spanning pages may also
+        repeat with different source_page.
+      * Organisers did not check this file table by table.
+
+2.2 EXTERNAL CONTEXT (web, Oct 2026)
+  - NGT directions ban immersion in Upper Lake and Lower Lake; BMC is
+    building dedicated ghats (Free Press Journal 26 Feb 2026; Hitavada 26 Feb
+    2026).
+  - Ganesh 2026 designated ghats per Free Press Journal 22 Sep 2026:
+    Prempura, Khatlapura, Hathaikheda Dam, Arch Bridge, Bairagarh, Malikhedi.
+    The Durga list may differ - VERIFY with BMC/organisers.
+  - IMPLICATIONS:
+      a) Arch Bridge has NO data in the CSV -> "blind spot", cannot be ranked.
+      b) Shahpura and Rani Kamlapati/Kamla Park have data but were not on the
+         reported Ganesh 2026 list -> show, but label "not on reported 2026
+         list - confirm".
+      c) Past readings are from lake-side ghats; 2026 immersion is meant to
+         use tanks/kunds. History may not describe the new setups. State this.
+  - Durga visarjan date: 20 Oct 2026 (organisers cite Drik Panchang).
+
+2.3 USER RESEARCH (derived from problem statement; NO primary interviews yet)
+  PERSONA - "BMC visarjan planning officer"
+    Context : Plans ghat arrangements for Durga visarjan; decides where to send
+              extra cleaning, aeration and water testing. Today decides from
+              memory; test results sit in 90-120 page PDFs.
+    Needs   : Which ghats first, and why, in one glance. Numbers they can
+              defend if challenged. Something forwardable to seniors/field
+              teams. Hindi and English.
+    Constraints: Time-pressed, likely on phone or office PC, not a data analyst.
+  JOB TO BE DONE: "When Durga visarjan is days away, help me decide where to
+    spend limited cleaning/aeration/testing effort, and justify it to others."
+  ASSUMPTIONS TO VALIDATE TODAY (ask mentors / department rep / organisers):
+    A1 Officers prefer a ranked list over a map. 
+    A2 A Hindi brief is forwarded as PDF or as pasted text (WhatsApp-style).
+    A3 CPCB class B (outdoor bathing) is an acceptable yardstick.
+    A4 "Baseline vs festival effect" changes what action they would take.
+    A5 Officers want to see the source page, not just the number.
+    A6 The officer has a limited number of test kits/teams and wants help
+       choosing where to test first (drives F8).
+    A7 Officers forward information as pasted text or an image in a messaging
+       app (assumption from general practice; drives F9). VERIFY.
+    A8 "Compared with other MP sites" helps the officer answer "is Bhopal
+       really worse?" (drives F10).
+  VALIDATION PLAN (15 minutes, run at ~Level 4 and again at ~Level 6):
+    - Ask 3 questions: "What would you do first if you saw this list?" /
+      "Which number would you challenge?" / "Would you forward this brief
+      as is? What would you change?"
+    - Usability test: a non-technical teammate plays the officer; task = "find
+      the riskiest ghat, say why, find where the number came from, forward the
+      brief". Success = done unaided in under 2 minutes with 0 wrong answers.
+    - Record friction points as issues in the repo.
+  HONESTY NOTE: persona and needs are inferred from the problem statement, not
+  from interviews. State this in the README.
+
+2.4 ALTERNATIVES COMPARED (manual comparison; the /arena bracket was NOT run)
+  App framework
+    Streamlit (CHOSEN)   fastest, Python only, upload/re-score easy; less polish
+    Static HTML + JS     cleaner, easy to host; needs JS port of scoring (risk
+                         of two implementations disagreeing)
+    Notebook / CLI       fastest to build; fails Product and Demo criteria
+  Scoring
+    Two-part (baseline + festival effect) + confidence (CHOSEN)  explainable,
+                         actionable, clears the "Idea" bar
+    Single composite score   predictable, opaque, weak traceability
+    ML/forecast          too little data, invites health/forecast claims
+  Brief
+    Templates filled from computed numbers (CHOSEN)  deterministic, traceable,
+                         no key needed
+    Free-form LLM        risk of wrong numbers in a forwarded document
+  OPTIONAL: if time allows, stress-test Appendix A with the Claude Code skill
+    "/arena --quick <review the scoring rules in core.txt Appendix A for
+    flaws and propose fixes>" (16 agents, ~91 sub-agent calls). Do this only
+    after Level 6; it is NOT required.
+
+--------------------------------------------------------------------------------
+3. ROADMAP - IDEA TO DEPLOYMENT
+--------------------------------------------------------------------------------
+Event clock: build started 10:15. Demo recording 16:00. Submission 17:00.
+Time-boxes below are budgets; adjust to the current time but protect the
+last two phases.
+
+ PHASE 1  FOUNDATIONS     (~45 min)  L0 setup, L1 data loader + limits
+ PHASE 2  CORE ENGINE     (~75 min)  L2 scoring, L3 evidence + gaps
+ PHASE 3  PRODUCT         (~90 min)  L4 Streamlit app, L5 brief EN+HI
+ PHASE 4  DIFFERENTIATOR  (~45 min)  L6 re-score + honesty tests hardening
+ PHASE 5  ENHANCEMENTS    (~75 min)  L7 persistence, planner, share card,
+                                     benchmark (only after G1-G6 green;
+                                     each item independently cuttable)
+ PHASE 6  SHIP            (~60 min)  L8 docs, deploy, demo, submit
+                                     MUST START BY 15:00
+ STRETCH                  (after ship) L9 lake cross-check, map, ask box
+
+ MILESTONE GATES
+   G1  Golden numbers reproduce (116/42 and 112/100)      end of L1
+   G2  Ranked output with reasons exists as JSON           end of L2
+   G3  Every number has a working source link              end of L3
+   G4  Usable app on first open, no setup screens          end of L4
+   G5  Reviewed Hindi brief + EN brief export              end of L5
+   G6  Re-score works with a sample upload                 end of L6
+   G7  Each enhancement 7A-7D is either done+tested or explicitly cut
+       and noted in README                                  end of L7
+   G8  Public repo, live link, recording, form submitted   end of L8
+
+--------------------------------------------------------------------------------
+4. TECH STACK AND USAGE
+--------------------------------------------------------------------------------
+ Python 3.11+        one language for engine, app, tests
+ pandas              load/long-format CSV, group, aggregate
+ PyYAML              read rules.yaml (limits, weights, thresholds)
+ pydantic (optional) validate uploaded CSV schema and rules
+ Streamlit           the app (ranked list, detail, gaps, brief, re-score)
+ PyMuPDF (fitz)      render the cited PDF page as an image for evidence view
+ Jinja2              fill EN/HI brief templates; produce print-ready HTML
+ Pillow              render the share-ready image card (F9)
+ Noto Sans Devanagari  embedded font for Hindi in brief HTML (check license
+                     file included; do not hotlink)
+ pytest              golden + honesty + source tests
+ ruff                lint/format
+ python-dotenv       load optional env vars
+ GitHub              public repo, MIT LICENSE
+ Streamlit Community Cloud  hosted link (verify current free-tier limits and
+                     sleep behaviour yourself before relying on it)
+ Claude / Claude Code  BUILD-TIME: write code, tests, first Hindi draft.
+                     RUN-TIME: optional, OFF by default (env var
+                     ENABLE_LLM_REPHRASE=1); never computes numbers.
+ Cerebras inference  allowed by event rules; optional fast rephrase only.
+
+ STACK RULES
+   - Engine (scoring/) has NO Streamlit imports. App imports engine only.
+   - All thresholds/weights/limits live in rules.yaml, readable by non-coders.
+   - requirements.txt pinned to versions that install on a clean machine.
+   - Run command for the department: 5 steps or fewer (README):
+       1 git clone <repo>   2 cd <repo>   3 python -m venv .venv && activate
+       4 pip install -r requirements.txt   5 streamlit run app.py
+
+--------------------------------------------------------------------------------
+5. LEVEL-BY-LEVEL BUILD PLAN
+--------------------------------------------------------------------------------
+Suggested owners are guidance (T1/T2 technical, N1/N2 non-technical). Claude
+Code executes technical tasks; N1/N2 tasks are marked for humans.
+
+=== LEVEL 0 - SETUP (15 min) ===
+ Tasks
+   - Create repo layout from Appendix D. Add LICENSE (MIT), .gitignore,
+     .env.example, requirements.txt, README skeleton.
+   - Copy organisers' data/ and resources/ unchanged into the repo.
+   - Create data/context/designated_ghats_2026.csv with the six ghats and the
+     source URL (Free Press Journal, 22 Sep 2026).
+   - Add pytest + ruff config; CI optional.
+ Acceptance
+   - `pytest` runs (even if empty). `streamlit hello` not needed.
+   - No secrets in repo (grep for 'sk-', 'API_KEY=').
+
+=== LEVEL 1 - DATA LOADER + LIMITS (30 min) [T1] ===
+ Files: scoring/loader.py, scoring/limits.py, rules.yaml, tests/test_golden.py
+ Tasks
+   - load_readings(path) -> DataFrame with extra columns:
+       status in {"value","missing","below_detection"}
+       - value present            -> "value"
+       - flag in {'not sampled','*','**'} or empty without BDL/ND -> "missing"
+       - flag in {'BDL','ND'}     -> "below_detection" (NOT zero, NOT missing)
+   - Assert: BDL/ND on a scored parameter (pH, DO, BOD) -> raise warning and
+     record in gap register (currently does not occur).
+   - load_limits(path) reads cpcb_water_quality_criteria.csv; rules.yaml
+     selects class B and the scored parameters {pH, Dissolved oxygen, BOD}.
+   - evaluate(parameter, value) -> {breach: bool, exceedance: float in 0..1}
+     (formulas in Appendix A).
+ Acceptance (GATE G1)
+   - Golden test passes: DO valid=116, below 5 =42; BOD valid=112, above 3=100.
+   - Test: 'not sampled' never yields breach=False as "clean".
+
+=== LEVEL 2 - SCORING ENGINE (45 min) [T1] ===
+ Files: scoring/engine.py, scoring/config.py, tests/test_engine.py
+ Tasks
+   - Implement Appendix A: baseline_score, festival_score, risk_score,
+     driver label, tier, critical flag, confidence, ranking.
+   - Output a typed structure per ghat (dataclass or pydantic) and a JSON
+     file data/derived/ghat_scores.json with all components visible.
+   - Ghats with zero valid core readings (e.g. Arch Bridge, if added from
+     context) are NOT ranked; they go to the blind-spot list.
+ Acceptance (GATE G2)
+   - Running `python -m scoring.engine` prints a ranked table of the 7 ghats
+     with tier, driver, confidence.
+   - Print the score distribution and propose threshold adjustments if all
+     ghats land in one tier; record the final thresholds in rules.yaml.
+   - Unit tests for each component using tiny hand-made frames.
+
+=== LEVEL 3 - EVIDENCE + GAPS (30 min) [T1 + N2 check] ===
+ Files: scoring/evidence.py, scoring/gaps.py, tests/test_evidence.py
+ Tasks
+   - build_evidence(ghat) -> list of rows: parameter, value, limit, breach,
+     year, festival, phase, source_page, report_name, report_url_with_page.
+   - URL map (append #page=N):
+       2023 https://www.mppcb.mp.gov.in/proc/mon/Idol_immer._Report_23_CPCB.pdf
+       2024 https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2024.pdf
+       2025 https://www.mppcb.mp.gov.in/proc/mon/Ganesh_and_Durga_visarjan_report-2025.pdf
+   - render_page_image(year, page) using local PDFs in resources/ via PyMuPDF.
+     Cache images in data/derived/pages/.
+   - build_gap_register() returns structured gaps:
+       missing festival-year tables; 'not sampled' cells; ghats with no data;
+       designated-2026 ghats missing from data; data ghats not on the 2026
+       list; assumed units; only 4 metals; Rani Kamlapati ambiguity;
+       lake-ghat vs kund caveat.
+   - N2: spot-check 10 evidence rows against the PDFs; log results in
+     docs/METHOD.md ("Verification").
+ Acceptance (GATE G3)
+   - Every evidence row's source_page is within that year's report range.
+   - Opening 5 random evidence links shows the correct report page.
+   - Gap register includes Bairagarh/Malikhedi Durga 2025 and Arch Bridge.
+
+=== LEVEL 4 - STREAMLIT APP (60 min) [T2] ===
+ Files: app.py, ui/components.py, ui/theme.py, .streamlit/config.toml
+ Spec: Appendix B (design system). No login. No onboarding screens.
+ Screens (single page with sections, or 3 tabs max)
+   1 Ranked list: rank, ghat, water body, tier, driver, confidence, one-line
+     reason. Top banner: "Durga visarjan: 20 Oct 2026 | Standard: CPCB class B
+     | Data: MPPCB 2023-2025".
+   2 Ghat detail (expander/click): baseline vs festival effect numbers, trend
+     by year, evidence table with "view source" link + page image.
+   3 Gaps panel: blind spots, missing tables, caveats, confidence meaning.
+   4 Brief section: EN/HI toggle, preview, "Copy text", "Download HTML".
+ Acceptance (GATE G4)
+   - Fresh clone -> `streamlit run app.py` shows the ranked list with no
+     configuration.
+   - A new user finds the top ghat, its reason and one source page in under
+     60 seconds.
+   - Missing data visibly labelled "not sampled" (never blank, never 0, never
+     green).
+
+=== LEVEL 5 - BILINGUAL BRIEF (45 min) [T2 + N1 review] ===
+ Files: briefs/en.j2, briefs/hi.j2, scoring/brief.py, briefs/GLOSSARY.md,
+        briefs/hi_review_status.md
+ Content (<= 250 words per language)
+   1 Title + date + audience + standard used.
+   2 Top 3 ghats: one line each, with 1-2 key numbers and source (year, page).
+   3 "Where the data suggests checking first" - phrased "readings suggest",
+     not as engineering orders.
+   4 Blind spots (ghats/years without data).
+   5 Caveats: units assumed; only 4 metals; class B chosen as bathing
+     standard; past readings come from lake ghats; no health conclusions.
+ Tasks
+   - Claude drafts Hindi templates; mark every line "# NEEDS HUMAN REVIEW"
+     until N1 signs off in briefs/hi_review_status.md. Glossary draft (verify):
+       घाट = ghat | कुंड = kund | विसर्जन = immersion
+       घुलित ऑक्सीजन (DO) | जैव रासायनिक ऑक्सीजन माँग (BOD) | सीमा = limit
+   - Render print-ready HTML with embedded Noto Sans Devanagari; plain-text
+     export for pasting into messages. PDF only if time allows.
+ Acceptance (GATE G5)
+   - Both briefs generate from the same computed numbers (diff test: numbers
+     in EN == numbers in HI).
+   - N1 has reviewed every Hindi sentence; status file says "reviewed".
+   - Brief fits on one printed page.
+
+=== LEVEL 6 - RE-SCORE + HARDENING (40 min) [T1] ===
+ Files: scoring/rescore.py, ui/upload.py, data/samples/new_readings_sample.csv
+ Tasks
+   - Upload accepts CSV with the same columns as bhopal_ghats_2023_2025.csv.
+     Validate: required columns, phase in {pre,during,after}, numeric value
+     or recognised flag. On error show a clear message listing the problem.
+   - Merge uploaded rows with the base data, tag them source="uploaded", rerun
+     engine, show "what changed" per ghat (rank before -> after, tier change).
+   - Uploaded rows have no source_page: show "user-supplied" in evidence.
+   - Run Appendix C tests; fix any failure. Run the usability test (2.3).
+ Acceptance (GATE G6)
+   - Sample upload changes at least one ghat's score and the UI shows the
+     change; malformed upload shows a friendly error, no stack trace.
+
+=== LEVEL 7 - ENHANCEMENTS (up to 75 min total) [T1 + T2 + N1/N2] ===
+ PRECONDITION: G1-G6 green. Work in this order; stop at the 15:00 cut line.
+ Specs: Appendix F. Each item gets its own commit and its own tests.
+
+ --- 7A PERSISTENCE BADGE (15 min) [T1] ---
+ Files: scoring/persistence.py, ui/components.py (PersistenceBadge),
+        tests/test_persistence.py
+ Tasks
+   - For each ghat x scored parameter (DO, BOD, pH) compute, for the DURING
+     phase and for the PRE phase: breaches X, valid tables Y, missing M.
+   - Label: "Repeat" / "One-off" / "Too few tables" (Appendix F.1).
+   - Show on GhatRow and in the brief reason ("breached in 5 of 6 tables").
+ Acceptance
+   - Numbers equal a manual count for 2 ghats (log in docs/METHOD.md).
+   - Missing tables are shown as "n not sampled", never counted as clean.
+
+ --- 7B TEST PLANNER (25 min) [T1 + T2] ---
+ Files: scoring/planner.py, ui/planner_panel.py, tests/test_planner.py
+ Tasks
+   - Input: N (1 to number of ghats, default 3) and a checkbox "include
+     designated ghats with no data" (default ON).
+   - Output: ordered list of ghats to test, each with a plain reason built
+     from numbers (e.g. "High risk; no Durga 2025 table"), plus what to test:
+     pre-immersion DO, BOD, pH now; during-immersion on the day.
+   - No-data designated ghats (e.g. Arch Bridge) appear on a SEPARATE line:
+     "No baseline: any reading is new information". They are never given a
+     risk score.
+   - Formula and tie rules in Appendix F.2.
+ Acceptance
+   - Changing N changes the list; N=1 returns the single top-priority ghat.
+   - Every recommendation shows its numbers and links to evidence.
+   - Wording says "data suggests testing", never instructs engineering work.
+
+ --- 7C SHARE-READY OUTPUT (20 min) [T2 + N1 review] ---
+ Files: scoring/share.py, briefs/share_en.j2, briefs/share_hi.j2,
+        tests/test_share.py
+ Tasks
+   - Plain-text version, <= 1,000 characters per language, copy button.
+   - Image card (PNG, 1080x1080) with Pillow: date, standard, top 3 ghats with
+     tier + one key number each, one caveat line. Embedded Noto Sans
+     Devanagari for Hindi.
+   - Hindi text and card reviewed by N1 (briefs/hi_review_status.md).
+ Acceptance
+   - Open the Hindi PNG and verify visually: no empty boxes ("tofu"), no
+     clipped text. If Devanagari cannot be rendered correctly in time, ship
+     the plain-text version only and note it in README.
+   - Numbers in text, card and brief are identical (extend test T7).
+
+ --- 7D STATEWIDE BENCHMARK (35 min, built LAST, may be cut) [T1] ---
+ Files: scoring/benchmark.py, tests/test_benchmark.py,
+        data/derived/statewide_clean.csv, docs/METHOD.md (cleaning log)
+ Tasks
+   - Clean the statewide file per Appendix F.4: drop needs_check rows,
+     normalise regional_office, dedupe, exclude Bhopal ghats' own rows,
+     keep only pH, DO, BOD in the DURING phase.
+   - Compute each ghat's percentile among peer sites (Appendix F.4).
+   - Show as a small chip on the ghat detail: "Dissolved oxygen during
+     immersion: lower than X% of N other MP sites. Context only."
+   - Write the cleaning log (rows dropped and why) to docs/METHOD.md.
+   - The benchmark MUST NOT feed into risk_score, tier, driver or ranking.
+ Acceptance
+   - Cleaning log numbers match the code output.
+   - If peer site count < 30 for a parameter, hide the chip (do not show a
+     percentile on thin data).
+   - Chip wording includes "different water bodies; statewide file less
+     checked".
+   - Removing the benchmark module leaves the app fully working.
+ Acceptance (GATE G7): each of 7A-7D is done + tested, or cut and listed in
+ README under "Not included".
+
+=== LEVEL 8 - SHIP (60 min) [ALL] ===
+ Tasks
+   - README (Appendix E items), docs/METHOD.md (method note + gap register +
+     verification log + data provenance), LICENSE, .env.example.
+   - Secret scan; confirm no keys; confirm repo public.
+   - Deploy to Streamlit Community Cloud; test the live link on a phone.
+   - Record the 2-minute demo at 16:00 from the live app (backup: local run).
+   - Submit repo link (+ recording) via the form in the repo README before
+     17:00. Late submissions are not judged.
+ DEMO SCRIPT (6 min if selected)
+   0:00 Problem: 3 years of tests buried in PDFs; decisions from memory.
+   0:30 Officer's screen: ranked list; pick Bairagarh or Malikhedi; show why.
+   2:30 Trust: click a number -> report page image; show gaps panel.
+   3:30 Brief: EN/HI; copy/forward.
+   4:00 Decision: planner - "I can test 3 ghats" -> list and reasons.
+   4:30 Week after: upload new readings -> ranking changes.
+   5:15 Context + honest limits: benchmark chip (if built), assumed units,
+        4 metals, Arch Bridge no data.
+   Skip any segment whose feature was cut; keep the total under 6 minutes.
+ Acceptance (GATE G8): Appendix E fully ticked.
+
+=== LEVEL 9 - STRETCH (only after G8; skip if less than 30 min remain) ===
+   a) Lake cross-check: FIRST spend 20 minutes checking whether the Upper and
+      Lower Lake monthly PDFs in resources/ extract cleanly (pdftotext
+      -layout). Contents not yet verified. If tables are messy, DROP. If
+      clean, compare lake-wide monthly values with ghat pre-immersion values
+      to separate "lake is poor" from "ghat is poor"; context only.
+   b) Map view: coordinates from public sources, cite them in README.
+   c) Grounded "ask the data" box: Claude calls engine functions and quotes
+      returned evidence only; refuses when data does not cover the question;
+      OFF by default (ENABLE_LLM_ASK=1 plus key via env var); app must work
+      fully without it.
+   Do NOT start these if any gate is red.
+
+--------------------------------------------------------------------------------
+APPENDIX A - SCORING SPEC (defaults; tunable in rules.yaml)
+--------------------------------------------------------------------------------
+Standard: CPCB class B. Scored parameters: pH, Dissolved oxygen, BOD.
+Other parameters (COD, solids, turbidity, conductivity, Cr, Pb, Zn, Cu) are
+SHOWN as context with "no class B limit"; they are NOT scored. For metals,
+show counts: quantified vs BDL vs not sampled.
+
+Per-reading breach and exceedance (0..1):
+  DO  : breach if v < 5   ; exceedance = clip((5 - v)/5, 0, 1)
+  BOD : breach if v > 3   ; exceedance = clip((v - 3)/3, 0, 1)
+  pH  : breach if v < 6.5 or v > 8.5
+        exceedance = clip(distance_outside_range / 1.5, 0, 1)
+
+Valid reading = status "value". Missing readings are excluded from rates and
+counted against confidence. below_detection is not a breach.
+
+BASELINE score (pre phase only), over all festival-years available:
+  baseline = 0.5 * breach_rate + 0.5 * mean_exceedance   (mean over valid
+  pre readings; non-breaches contribute 0 exceedance)
+
+FESTIVAL score, per (festival, year, parameter) with valid pre and during:
+  worsen(pre -> X):
+     DO  : (pre - X) / 5       BOD : (X - pre) / 3
+     pH  : (dist_out(X) - dist_out(pre)) / 1.5
+  each clipped to 0..1 (improvement = 0)
+  triple_score = 0.7 * worsen(pre->during) + 0.3 * worsen(pre->after)
+  (if 'after' missing use during only; if 'during' missing skip the triple)
+  festival = mean(triple_score)
+
+RISK = 100 * (0.5 * baseline + 0.5 * festival)       [w_base, w_fest in yaml]
+
+CRITICAL FLAG: any reported DO == 0 mg/l -> tier floor = High and show
+"reported 0 mg/l dissolved oxygen: <n> times (years/pages)". (Our own flag,
+not a CPCB limit; wording must say so.)
+
+TIER (placeholders; calibrate in L2 so tiers separate; record final values):
+  High >= 60 | Medium 35-60 | Low < 35   (apply critical-flag floor)
+
+DRIVER label (placeholders):
+  baseline >= 0.40 and festival <  0.15 -> "Already poor before immersion"
+  festival >= 0.15 and baseline <  0.40 -> "Worsens with immersion"
+  baseline >= 0.40 and festival >= 0.15 -> "Poor before and worse during"
+  otherwise                             -> "Lower concern on available data"
+
+CONFIDENCE:
+  coverage = valid scored readings / expected scored readings
+  expected = 6 festival-years (3 years x Ganesh/Durga) x 3 phases x 3 params
+  High >= 0.90 | Medium 0.70-0.90 | Low < 0.70
+  Also list the specific missing items (e.g. "no Durga 2025 table").
+  If the latest Durga table is missing, cap confidence at Medium.
+
+RANKING: sort by tier, then risk score; break ties by lower confidence first
+(the less certain ghat is listed higher for testing). Show score components.
+
+REASON TEXT (generated by templates from numbers), example shape:
+  "Dissolved oxygen averaged 3.8 mg/l before immersion (limit: at least 5) and
+   2.2 during. Reported 0 mg/l four times. Source: Report 2023 p.60."
+  Never use words implying health outcomes.
+
+--------------------------------------------------------------------------------
+APPENDIX B - DESIGN SYSTEM FOR THE UI (small, token-based)
+--------------------------------------------------------------------------------
+Principles: consistency over creativity; every state labelled in text (colour
+is never the only signal); readable on a phone; Hindi and English equal.
+
+TOKENS (define in ui/theme.py and .streamlit/config.toml; no hardcoded hex
+elsewhere)
+  color.bg            #FFFFFF        color.surface   #F5F6F8
+  color.text          #1B1F24        color.muted     #5B6470
+  color.tier.high     #A32D2D  (text on #FCEBEB)
+  color.tier.medium   #854F0B  (text on #FAEEDA)
+  color.tier.low      #3B6D11  (text on #EAF3DE)
+  color.missing       #5F5E5A  (text on #F1EFE8, dashed border)
+  color.link          #185FA5
+  Contrast target: >= 4.5:1 for text. Verify tier pairs.
+  font.body           system sans; Hindi: Noto Sans Devanagari
+  type.scale          12 / 14 / 16 / 20 / 24 px   (weights 400 and 500 only)
+  space.scale         4 / 8 / 12 / 16 / 24 px
+  radius              8px (cards), 4px (badges)
+
+COMPONENTS (ui/components.py) - each has variants and states
+  TierBadge       variants High/Medium/Low/NoData; text label + icon + colour
+  ConfidenceMeter High/Medium/Low with the missing items listed on expand
+  GhatRow         rank, name, water body, TierBadge, driver, reason; states:
+                  default, expanded, low-confidence (dashed outline)
+  EvidenceTable   columns: parameter, value, limit, result, year, festival,
+                  phase, source link; states: value, missing ("not sampled"),
+                  below detection ("BDL - very low, not zero")
+  SourceLink      "Report 2025, p.28" opens URL#page=N; plus "show page"
+  GapCard         icon + title + one-line explanation + affected ghats
+  BriefPreview    EN/HI toggle, Copy text, Download HTML
+  UploadBox       drag-drop CSV; error state lists exactly what is wrong
+  PersistenceBadge  Repeat / One-off / Too few tables; shows "X of Y tables"
+                  and "n not sampled" (text + icon, not colour alone)
+  PlannerPanel    N selector, include-no-data checkbox, ordered cards with
+                  reason and "what to test"; separate "No baseline" section
+  BenchmarkChip   muted chip "lower than X% of N other MP sites - context
+                  only"; hidden when peers < 30; never uses tier colours
+  ShareCard       text preview + Copy, image preview + Download, EN/HI toggle
+ACCESSIBILITY: keyboard reachable, alt text on page images, no information by
+colour alone, min tap target 40px, language attribute set per brief.
+
+--------------------------------------------------------------------------------
+APPENDIX C - HONESTY AND QUALITY TESTS (must all pass)
+--------------------------------------------------------------------------------
+ T1  Golden: DO 116 valid / 42 below 5; BOD 112 valid / 100 above 3.
+ T2  'not sampled', '*', '**' -> status missing; never counted as clean.
+ T3  BDL/ND -> below_detection; never zero, never missing.
+ T4  Missing Durga 2025 (Bairagarh, Malikhedi) lowers confidence and is listed
+     in the UI and brief.
+ T5  Ghat with no valid readings is not ranked and appears as blind spot.
+ T6  Every evidence row: source_page within report range for that year.
+ T7  EN and HI briefs contain identical numbers (extract and compare).
+ T8  No health-effect wording in templates (denylist grep: "disease",
+     "illness", "unsafe to drink", "causes", "health risk").
+ T9  Re-score: uploaded rows tagged user-supplied; malformed file -> friendly
+     error.
+ T10 No secrets in repo; app runs with no network and no API key.
+ T11 Persistence: counts equal a manual count for 2 ghats; missing tables are
+     excluded from Y and listed separately.
+ T12 Planner: deterministic order; N=1 returns top priority; no-data ghats
+     never receive a risk score; ties follow Appendix F.2.
+ T13 Share text <= 1,000 characters per language; numbers identical to the
+     brief (extend T7).
+ T14 Benchmark: tiny hand-made frames give expected percentiles; direction
+     correct (DO lower = worse, BOD higher = worse); chip hidden when peers
+     < 30; Bhopal ghats' own rows excluded from peers.
+ T15 Benchmark isolation: ranking, tiers and drivers are IDENTICAL with the
+     benchmark module present and absent.
+ T16 Statewide cleaning: no needs_check rows remain; office names normalised;
+     dedupe count logged.
+
+--------------------------------------------------------------------------------
+APPENDIX D - REPO LAYOUT
+--------------------------------------------------------------------------------
+ README.md  LICENSE(MIT)  requirements.txt  .env.example  .gitignore  core.txt
+ app.py
+ rules.yaml
+ scoring/   loader.py limits.py engine.py config.py evidence.py gaps.py
+            brief.py rescore.py persistence.py planner.py share.py
+            benchmark.py
+ ui/        components.py theme.py upload.py planner_panel.py
+ briefs/    en.j2 hi.j2 share_en.j2 share_hi.j2 GLOSSARY.md
+            hi_review_status.md
+ data/      (organisers' files, unchanged)
+ data/context/   designated_ghats_2026.csv
+ data/derived/   ghat_scores.json  pages/  statewide_clean.csv
+ data/samples/   new_readings_sample.csv
+ resources/ (organisers' PDFs)
+ docs/      METHOD.md   (method, gap register, verification log, provenance)
+ tests/     test_golden.py test_engine.py test_evidence.py test_honesty.py
+            test_persistence.py test_planner.py test_share.py
+            test_benchmark.py
+ .streamlit/config.toml
+
+--------------------------------------------------------------------------------
+APPENDIX E - SUBMISSION CHECKLIST (maps to judging criteria)
+--------------------------------------------------------------------------------
+Judging (each 0-5; Day-one impact counts double; max 25):
+  Day-one impact x2 : ready on first open, real decision value, re-score for
+                      the week after, planner, share-ready output.
+                                                   -> L4, L5, L6, L7B, L7C
+  Product           : one screen, no setup, source click-through, forward
+                      button.                      -> L4
+  Idea              : baseline vs festival split tied to actions + confidence;
+                      persistence; statewide context.   -> L2, L7A, L7D
+  Clarity of demo   : problem, user, outcome obvious in 6 min; script in L8.
+
+Jury also looks for (tick each):
+  [ ] Ranking traceable to readings and CPCB limits
+  [ ] Missing data shown as missing, never clean
+  [ ] Brief short and readable in Hindi and English
+  [ ] Team honest about what the data doesn't cover
+
+Repo must contain (tick each):
+  [ ] README: team name, members, track, the one user
+  [ ] How to run in <= 5 steps
+  [ ] What works and what doesn't
+  [ ] Extra data used, with links (designated ghats source; statewide file
+      described as "context benchmark, less-checked")
+  [ ] "Not included" section lists any enhancement that was cut
+  [ ] LICENSE (MIT)
+  [ ] No API keys or secrets
+  [ ] Repo public by 17:00; recording (<= 2 min) done at 16:00; form submitted
+
+--------------------------------------------------------------------------------
+8. OPEN DECISIONS AND RISKS (defaults given; log choices in docs/METHOD.md)
+--------------------------------------------------------------------------------
+ D1  Weights (0.5/0.5) and tier thresholds: default as Appendix A; calibrate in
+     L2 so the ranking is meaningful; do not tune to force a "nice" ranking.
+ D2  Critical flag at DO == 0: keep, labelled as the team's own flag.
+ D3  Rani Kamlapati / Kamla Park: keep as ONE entity with a visible warning
+     "may cover two places"; do not silently split.
+ D4  Ghats not on the reported 2026 list (Shahpura, Rani Kamlapati): keep in
+     ranking, label "confirm with BMC".
+ D5  Hindi wording: final authority is the human reviewer (N1).
+ D6  Streamlit Cloud availability: have a local-run fallback recording.
+ D7  Planner default "include no-data designated ghats": ON, worded as
+     information value, not risk. Change only if mentors advise otherwise.
+ D8  Persistence thresholds (Repeat = breached in >= 2/3 of valid tables and
+     Y >= 3): default; tune in rules.yaml.
+ D9  Benchmark peer set = other MP sites' DURING-phase medians; minimum 30
+     peer sites; cut it if cleaning takes longer than its time-box.
+ RISKS: Hindi font rendering (test early); time lost on PDF export (skip PDF,
+ use print-ready HTML); over-claiming from small samples (use "readings
+ suggest"); scope creep (enhancements only after G6; stretch only after G8).
+
+--------------------------------------------------------------------------------
+APPENDIX F - ENHANCEMENT SPECS (defaults; tunable in rules.yaml)
+--------------------------------------------------------------------------------
+F.1 PERSISTENCE
+  For ghat g, parameter p in {DO, BOD, pH}, phase in {during, pre}:
+    Y = number of festival-year tables with a VALID reading
+    X = number of those readings that breach the class B limit
+    M = number of tables where the reading is missing (shown, not counted)
+  Label (during phase, per parameter):
+    Y < 3                      -> "Too few tables"
+    X >= ceil(2/3 * Y)         -> "Repeat"
+    X == 1                     -> "One-off"
+    otherwise                  -> "Intermittent"
+  Display: "<X> of <Y> tables" and "<M> not sampled".
+  Reason text example: "Dissolved oxygen was below 5 mg/l during immersion in
+  5 of 6 tables."
+
+F.2 TEST PLANNER
+  uncertainty = 1 - coverage          (coverage from Appendix A)
+  priority    = risk_score * (1 + u_weight * uncertainty)   u_weight = 1.0
+  Order by priority desc; ties broken by lower coverage, then name.
+  Take the first N ranked ghats.
+  No-data designated ghats (from data/context/designated_ghats_2026.csv with
+  zero valid readings) are listed separately as "No baseline"; with the
+  checkbox ON they are shown first, wording: "No past readings: any test is
+  new information." They get NO risk score and NO tier.
+  What to test (text only): pre-immersion DO, BOD, pH before 20 Oct;
+  during-immersion on the day. Say "data suggests testing", not "must".
+
+F.3 SHARE-READY OUTPUT
+  Text template slots: date, standard, top-3 ghats (name, tier, one number
+  with year and page), one blind-spot line, one caveat line.
+  <= 1,000 characters per language. Same numbers as the brief (single source:
+  scoring outputs). Image: 1080x1080 PNG, same slots, high contrast, font
+  size >= 28 px for body text.
+
+F.4 STATEWIDE BENCHMARK (context only)
+  Cleaning, in this order, logging rows removed at each step:
+    1 drop rows where needs_check == "yes"
+    2 normalise regional_office: strip spaces and dots, case-fold, merge
+      known spelling variants (Singrouli/Singrauli, Chhindwada/Chhindwara)
+    3 drop exact duplicates ignoring source_page
+    4 drop rows whose site_as_printed matches any site_as_printed in the
+      Bhopal CSV (no self-comparison)
+    5 keep parameter in {pH, Dissolved oxygen, BOD}, phase == "during",
+      status == value
+  Site-level value = median of that site's during-phase readings (per
+  parameter), so sites with many readings do not dominate.
+  Percentile for ghat g, DO: share of peer sites with a HIGHER median than g
+  (i.e. g is "lower than X% of peers"); BOD: share of peer sites with a LOWER
+  median than g ("higher than X%"). pH is not benchmarked (range-based).
+  Hide chip if peer sites < 30. Required wording on every chip: "context
+  only; different water bodies; statewide file less checked".
+  Isolation rule: benchmark code is read-only with respect to scores.
+
+================================================================================
+END OF CORE.TXT
+================================================================================
