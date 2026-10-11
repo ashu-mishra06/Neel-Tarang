@@ -128,7 +128,7 @@ def festival_triples(
     out = []
     for (festival, year, parameter), row in wide.iterrows():
         pre, during, after = (row.get(p) for p in PHASES)
-        if pd.isna(pre) or pd.isna(during):
+        if parameter not in limits or pd.isna(pre) or pd.isna(during):
             continue
         w_during = worsen(limits[parameter], pre, during)
         w_after = None if pd.isna(after) else worsen(limits[parameter], pre, after)
@@ -142,6 +142,30 @@ def festival_triples(
 
 def mean_or_none(values: list[float]) -> float | None:
     return sum(values) / len(values) if values else None
+
+
+def festival_by_parameter(triples: list[dict[str, Any]]) -> dict[str, float]:
+    """Mean triple score per parameter (only parameters with at least one triple)."""
+    names = dict.fromkeys(t["parameter"] for t in triples)
+    return {n: mean_or_none([t["score"] for t in triples if t["parameter"] == n]) for n in names}
+
+
+def festival_score(triples: list[dict[str, Any]], rules: dict[str, Any]) -> float | None:
+    """Festival effect from per-parameter mean triple scores.
+
+    Default "max": the WORST parameter decides. Class B compliance fails if
+    any one parameter fails, so one parameter getting worse is not diluted by
+    the others staying steady. "mean" (the original rule) is kept as an option.
+    """
+    per_parameter = festival_by_parameter(triples)
+    if not per_parameter:
+        return None
+    how = rules["scoring"]["festival_aggregation"]
+    if how == "max":
+        return max(per_parameter.values())
+    if how == "mean_of_triples":
+        return mean_or_none([t["score"] for t in triples])
+    raise ValueError(f"Unknown festival_aggregation {how!r}")
 
 
 def risk_score(baseline: float | None, festival: float | None, rules: dict[str, Any]) -> float:
@@ -224,17 +248,18 @@ def parameter_details(
     rules: dict[str, Any],
 ) -> list[ParameterDetail]:
     out = []
+    per_parameter = festival_by_parameter(triples)
     for name, limit in limits.items():
         p = g[(g["parameter"] == name) & (g["status"] == VALUE)]
         pre, during = p[p["phase"] == "pre"], p[p["phase"] == "during"]
         base = baseline_components(g[g["parameter"] == name], rules)["score"]
-        fest = [t["score"] for t in triples if t["parameter"] == name]
         out.append(ParameterDetail(
             parameter=name, limit=limit_text(limit),
             pre_mean=float(pre["value_num"].mean()) if len(pre) else None,
             during_mean=float(during["value_num"].mean()) if len(during) else None,
             pre_valid=len(pre), pre_breaches=int(pre["breach"].astype(bool).sum()),
-            baseline=base, festival=mean_or_none(fest), festival_triples=len(fest),
+            baseline=base, festival=per_parameter.get(name),
+            festival_triples=sum(t["parameter"] == name for t in triples),
         ))
     return out
 
@@ -304,7 +329,7 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
     rules, limits, name = ctx["rules"], ctx["limits"], g["ghat"].iloc[0]
     base = baseline_components(g, rules)
     triples = festival_triples(g, limits, rules)
-    festival = mean_or_none([t["score"] for t in triples])
+    festival = festival_score(triples, rules)
     if base["score"] is None and festival is None:
         return BlindSpot(name, "No valid pre-immersion or comparable readings")
     risk = risk_score(base["score"], festival, rules)

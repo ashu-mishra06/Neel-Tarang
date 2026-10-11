@@ -61,7 +61,10 @@ write `data/derived/ghat_scores.json` with every component visible.
   exceedance over valid pH, DO and BOD readings.
 - **Festival effect**: for each festival-year-parameter with valid pre and
   during readings, 0.7 x worsening (pre to during) + 0.3 x worsening (pre to
-  after); during only if after is missing. Improvement counts as 0.
+  after); during only if after is missing. Improvement counts as 0. Each
+  parameter's festival value is the mean of its triples; the ghat's festival
+  effect is the **worst parameter's** value (max over pH, DO, BOD). The
+  per-parameter values stay in the output.
 - **Risk** = 100 x (0.5 x baseline + 0.5 x festival). If one part cannot be
   computed, risk uses the other part alone (re-weighted) and the driver says
   "Not enough data to tell". A missing part is never treated as 0.
@@ -78,20 +81,51 @@ write `data/derived/ghat_scores.json` with every component visible.
 
 ### Decisions (core.txt Section 8)
 
-- **D1 tier cut-offs.** With the placeholder cut-offs (High 60, Medium 35)
-  all 7 ghats scored Low (observed range 13.9-33.6), so the tiers said
-  nothing. The final cut-offs are tied to the driver cut-offs, not fitted to
-  the seven scores:
-  - High >= 27.5 = 100 x (0.5 x 0.40 + 0.5 x 0.15): a ghat at both the
-    "poor before" and "worsens" levels.
-  - Medium >= 20 = 100 x (0.5 x 0.40): a ghat at the "poor before" level
-    alone.
+- **D1a festival aggregation (decided 11 Oct 2026, reviewer decision).** The
+  festival effect is the MAX over parameters of each parameter's mean triple
+  score, replacing the mean over all triples. Reason: class B compliance
+  fails if any one parameter fails, so a single parameter getting worse
+  should not be diluted by others staying steady. Setting:
+  `scoring.festival_aggregation: max` (the old rule is `mean_of_triples`).
+- **D1b tier cut-offs.** With the placeholder cut-offs (High 60, Medium 35)
+  all 7 ghats scored Low (range 13.9-33.6). Final cut-offs, set in Level 2
+  and **not re-tuned** after D1a:
+  - High >= 27.5 = 100 x (0.5 x 0.40 + 0.5 x 0.15). **Derived**: a ghat
+    exactly at both driver cut-offs ("poor before" and "worsens").
+  - Medium >= 20 = 100 x (0.5 x 0.40 + 0.5 x 0). The arithmetic is derived
+    from the same cut-offs, but choosing "at the baseline cut-off with no
+    worsening" as the Medium anchor is a **judgement**, not a rule from
+    CPCB or the brief.
+  - Weights stay at 0.5 / 0.5. The rejected alternative was tertiles of the
+    observed scores, which would be fitting to the data.
 
-  Result: High 3, Medium 3, Low 1. The rejected alternative was tertiles of
-  the observed scores (Medium 24, High 30), which put Shahpura (30.8) and
-  Hathaikheda (29.7) in different tiers over a 1.1-point gap. Weights stay at
-  0.5 / 0.5. Tiers never change the order within the ranking except through
-  the critical flag below.
+  Effect of D1a with the cut-offs unchanged (before -> after):
+
+  | Ghat | Festival | Risk | Tier | Driver |
+  |---|---|---|---|---|
+  | Bairagarh | 0.263 -> 0.525 | 33.6 -> 46.7 | High | Poor before and worse during |
+  | Shahpura | 0.230 -> 0.537 | 30.8 -> 46.2 | High | Worsens with immersion |
+  | Hathaikheda | 0.300 -> 0.613 | 29.7 -> 45.3 | High | Worsens with immersion |
+  | Rani Kamlapati | 0.137 -> 0.318 | 24.4 -> 33.5 | Medium -> **High** | Lower concern -> **Worsens** |
+  | Malikhedi | 0.097 -> 0.149 | 24.1 -> 26.7 | Medium | Lower concern |
+  | Khatlapura | 0.112 -> 0.191 | 21.1 -> 25.1 | Medium | Lower concern -> **Worsens** |
+  | Prempura | 0.123 -> 0.251 | 13.9 -> 20.3 | Low -> **Medium** | Lower concern -> **Worsens** |
+
+  Ranking order is unchanged. Tiers are now High 4, Medium 3, Low 0. BOD is
+  the worst parameter at 6 of 7 ghats. Taking the max means the festival
+  scores are on a larger scale than the 0.15 driver cut-off was set for, so
+  6 of 7 ghats now read "worsens". Prempura (20.3) sits just above the
+  Medium line.
+
+  Malikhedi stays below 0.15 (DO 0.149). Its "5.4 to 4.0 mg/l" figure
+  compares averages over different tables. Matched pre/during pairs show
+  small drops (Durga 2023 4.6 to 4.3; Durga 2024 4.5 to 4.1; Ganesh 2023 7.5
+  to 7.0; Ganesh 2024 4.8 to 3.8). The lowest reading, 0.6 mg/l during
+  Ganesh 2025, has no pre reading, so no festival triple can be formed from
+  it. Its biggest drop is after immersion (Ganesh 2023: 7.5 to 3.2), which
+  carries weight 0.3. The test for a single parameter crossing its limit
+  uses a hand-made 5.4 -> 4.0 table (festival 0.28, "Worsens with
+  immersion").
 - **D2 critical flag.** Any reported DO of exactly 0 mg/l lifts the tier to
   at least High. It is labelled as the team's own flag, not a CPCB limit.
   Bairagarh has 4 such readings (2023 Durga pre and during p.60, 2023 Ganesh
@@ -108,6 +142,6 @@ write `data/derived/ghat_scores.json` with every component visible.
 - BOD breaches its limit in most pre-immersion readings at every ghat, so
   BOD drives most baselines. That is why the baseline and festival parts are
   kept apart.
-- The festival effect averages over all three parameters. A ghat where only
-  DO drops (Malikhedi: 5.4 to 4.0 mg/l on average) gets a modest festival
-  score (0.10), though the reason text names the drop.
+- The reason text quotes average pre and average during values. These can
+  come from different tables (see Malikhedi above), so they can show a
+  bigger change than the matched pairs used in the score.

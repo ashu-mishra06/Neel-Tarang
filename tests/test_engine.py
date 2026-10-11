@@ -12,6 +12,7 @@ from scoring.engine import (
     confidence_for,
     critical_flag,
     driver_for,
+    festival_score,
     festival_triples,
     rank,
     risk_score,
@@ -111,6 +112,42 @@ def test_festival_triple_skipped_without_during_or_pre() -> None:
     assert festival_triples(g, LIMITS, RULES) == []
 
 
+def three_parameter_table(do_pre: float, do_during: float) -> list[tuple]:
+    """One Durga 2023 table: DO moves as given, BOD and pH stay steady and within limits."""
+    rows = []
+    for phase, do in (("pre", do_pre), ("during", do_during), ("after", do_during)):
+        rows += [("Durga", 2023, phase, "Dissolved oxygen", do),
+                 ("Durga", 2023, phase, "BOD", 2.0),
+                 ("Durga", 2023, phase, "pH", 7.5)]
+    return rows
+
+
+def test_festival_score_is_worst_parameter() -> None:
+    g = frame(three_parameter_table(5.4, 4.0))
+    triples = festival_triples(g, LIMITS, RULES)
+    assert festival_score(triples, RULES) == pytest.approx(1.4 / 5)  # DO alone decides
+    mean_rules = {**RULES, "scoring": {**RULES["scoring"],
+                                       "festival_aggregation": "mean_of_triples"}}
+    assert festival_score(triples, mean_rules) == pytest.approx(1.4 / 5 / 3)  # old rule dilutes
+
+
+def test_festival_score_unknown_aggregation_raises() -> None:
+    bad = {**RULES, "scoring": {**RULES["scoring"], "festival_aggregation": "median"}}
+    with pytest.raises(ValueError):
+        festival_score([{"parameter": "BOD", "score": 0.2}], bad)
+
+
+def test_single_parameter_crossing_drives_worsens_label() -> None:
+    """Malikhedi-shaped case: DO 5.4 -> 4.0 crosses the 5 mg/l limit; BOD and pH steady."""
+    scores = score_all(frame(three_parameter_table(5.4, 4.0)), RULES, LIMITS, NO_DESIGNATED)
+    (g,) = scores.ranked
+    assert g.festival >= RULES["scoring"]["driver"]["festival"]
+    assert g.baseline < RULES["scoring"]["driver"]["baseline"]
+    assert g.driver == "Worsens with immersion"
+    do = next(p for p in g.parameters if p.parameter == "Dissolved oxygen")
+    assert do.festival == pytest.approx(g.festival)  # per-parameter value kept for detail view
+
+
 # ---------- risk / tier / driver / critical ----------
 
 
@@ -159,6 +196,20 @@ def test_critical_flag_lifts_tier_to_high() -> None:
     scores = score_all(frame(rows), RULES, LIMITS, NO_DESIGNATED)
     (g,) = scores.ranked
     assert g.tier_from_score == "Low" and g.tier == "High"
+
+
+def test_critical_flag_floor_never_lowers_a_tier() -> None:
+    rows = [("Durga", 2023, p, "BOD", 12.0) for p in ("pre", "during", "after")]
+    rows += [("Durga", 2023, "pre", "Dissolved oxygen", 0.0)]
+    (g,) = score_all(frame(rows), RULES, LIMITS, NO_DESIGNATED).ranked
+    assert g.critical is not None and g.tier == "High"
+
+
+def test_no_critical_flag_keeps_score_tier() -> None:
+    rows = [(f, 2023, p, "Dissolved oxygen", 9.0) for f in ("Durga", "Ganesh")
+            for p in ("pre", "during", "after")]
+    (g,) = score_all(frame(rows), RULES, LIMITS, NO_DESIGNATED).ranked
+    assert g.critical is None and g.tier == g.tier_from_score == "Low"
 
 
 # ---------- confidence ----------

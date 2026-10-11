@@ -521,7 +521,11 @@ FESTIVAL score, per (festival, year, parameter) with valid pre and during:
   each clipped to 0..1 (improvement = 0)
   triple_score = 0.7 * worsen(pre->during) + 0.3 * worsen(pre->after)
   (if 'after' missing use during only; if 'during' missing skip the triple)
-  festival = mean(triple_score)
+  festival_p = mean(triple_score) over that parameter's triples
+  festival   = MAX over parameters of festival_p   (worst parameter decides;
+               decided 11 Oct 2026, replaces mean over all triples; keep
+               festival_p per parameter in the output for the detail view;
+               rules.yaml scoring.festival_aggregation: max | mean_of_triples)
 
 RISK = 100 * (0.5 * baseline + 0.5 * festival)       [w_base, w_fest in yaml]
 
@@ -529,8 +533,10 @@ CRITICAL FLAG: any reported DO == 0 mg/l -> tier floor = High and show
 "reported 0 mg/l dissolved oxygen: <n> times (years/pages)". (Our own flag,
 not a CPCB limit; wording must say so.)
 
-TIER (placeholders; calibrate in L2 so tiers separate; record final values):
-  High >= 60 | Medium 35-60 | Low < 35   (apply critical-flag floor)
+TIER (calibrated in L2, 11 Oct 2026; placeholders were 60 / 35):
+  High >= 27.5 | Medium 20-27.5 | Low < 20   (apply critical-flag floor)
+  High 27.5 = 100*(0.5*0.40 + 0.5*0.15), derived from the driver cut-offs.
+  Medium 20 = 100*(0.5*0.40), derived arithmetic; anchor choice is judgement.
 
 DRIVER label (placeholders):
   baseline >= 0.40 and festival <  0.15 -> "Already poor before immersion"
@@ -684,6 +690,9 @@ Repo must contain (tick each):
 --------------------------------------------------------------------------------
  D1  Weights (0.5/0.5) and tier thresholds: default as Appendix A; calibrate in
      L2 so the ranking is meaningful; do not tune to force a "nice" ranking.
+     DECIDED 11 Oct 2026: festival = max over parameters (worst parameter);
+     tiers High 27.5 / Medium 20, not re-tuned after the festival change.
+     See docs/METHOD.md D1.
  D2  Critical flag at DO == 0: keep, labelled as the team's own flag.
  D3  Rani Kamlapati / Kamla Park: keep as ONE entity with a visible warning
      "may cover two places"; do not silently split.
