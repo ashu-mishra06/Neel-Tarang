@@ -195,3 +195,21 @@ def gap_text(gap: Any, lang: str) -> tuple[str, str]:
     if lang == "hi" and gap.id in GAP_HI:
         return GAP_HI[gap.id]
     return gap.title, gap.detail
+
+
+PERSIST_HI = {"Repeat": "बार-बार", "One-off": "एक बार", "Intermittent": "कभी-कभी",
+              "Never breached": "कभी नहीं", "Too few tables": "बहुत कम तालिकाएँ"}
+
+
+def persistence_badge(r: dict[str, Any], rule: str, lang: str) -> str:
+    """Persistence badge text (7A) in the chosen language; numbers from the engine."""
+    if lang != "hi":
+        word = {"min": "below", "max": "above"}.get(rule, "outside")
+        return (f"{r['label']}: {r['parameter']} {word} limit {r['phase']} immersion in "
+                f"{r['breaches']} of {r['valid_tables']} tables "
+                f"({r['missing_tables']} not sampled)")
+    word = {"min": "नीचे", "max": "ऊपर"}.get(rule, "बाहर")
+    phase = "दौरान" if r["phase"] == "during" else "से पहले"
+    return (f"{PERSIST_HI.get(r['label'], r['label'])}: विसर्जन {phase} "
+            f"{parameter(r['parameter'], 'hi')} {r['valid_tables']} में से {r['breaches']} "
+            f"तालिकाओं में सीमा से {word} ({r['missing_tables']} में नमूना नहीं)")

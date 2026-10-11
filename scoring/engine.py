@@ -21,6 +21,7 @@ from scoring.config import load_rules, repo_path
 from scoring.limits import Limit, evaluate_frame, limit_text, load_limits, worsen
 from scoring.loader import VALUE, load_readings
 from scoring.pairs import anchor_by_parameter, matched_pairs, unpaired_breaches, worsens
+from scoring.persistence import persistence
 from scoring.reasons import cite, reason_parts, reason_text, short_reason
 
 PHASES = ("pre", "during", "after")
@@ -101,6 +102,7 @@ class GhatScore:
     parameters: list[ParameterDetail] = field(default_factory=list)
     matched_pairs: list[dict[str, Any]] = field(default_factory=list)
     unpaired_breaches: list[dict[str, Any]] = field(default_factory=list)
+    persistence: list[dict[str, Any]] = field(default_factory=list)  # 7A, display only
 
 
 @dataclass
@@ -416,7 +418,7 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
         critical=critical, reason=reason_text(parts),
         reason_short=short_reason(parts, worse, poor), on_2026_list=on_list,
         labels=_labels(g, on_list), parameters=details, matched_pairs=pairs,
-        unpaired_breaches=unpaired,
+        unpaired_breaches=unpaired, persistence=persistence(g, limits, rules),
     )
 
 

@@ -340,3 +340,26 @@ URLs on 10 Oct 2026.
 - With the sample file, Arch Bridge enters at rank 1 (High, Low confidence:
   one invented table). Malikhedi goes from Medium to High (26.7 -> 31.7). The
   numbers are invented; this only demonstrates the mechanism.
+
+## 7A Persistence badge (Level 7)
+
+`scoring/persistence.py`, Appendix F.1. For each ghat x parameter x phase
+(during, pre): Y = tables with a valid reading, X = how many breach, M = tables
+not sampled (listed, never counted as clean). Labels: Y < 3 "Too few tables";
+X >= ceil(2/3 x Y) "Repeat" (exact integer maths); X = 1 "One-off"; X = 0
+"Never breached" (**added**: F.1 leaves X = 0 open); otherwise "Intermittent".
+Display only: a test checks that ranking, tiers and drivers are identical
+with and without it.
+
+Headline badges (during immersion): Bairagarh DO below 5 mg/l in 5 of 5
+tables; Shahpura, Hathaikheda, Rani Kamlapati BOD above 3 mg/l in 6 of 6;
+Malikhedi DO in 4 of 5; Khatlapura BOD in 4 of 5 (1 not sampled); Prempura
+BOD in 3 of 5 ("Intermittent").
+
+**Manual count check (T11)**, plain pandas on the organisers' CSV vs the engine,
+in `tests/test_persistence.py`: Bairagarh DO during and BOD pre; Khatlapura BOD
+during (4 of 5, 1 not sampled) and DO pre. All four equal.
+
+The brief now carries one persistence line per top ghat (EN and HI, same
+numbers). The tier-line numbers were dropped from the brief heading to stay
+under 250 words.

@@ -126,7 +126,8 @@ def ranked_list(data: dict[str, Any], lang: str) -> None:
     scores, rules = data["scores"], data["rules"]
     how_to_read(rules, lang)
     for s in scores.ranked:
-        html(ui.ghat_row(s, lang, row_reason(s, data, lang)))
+        rules_by_param = {k: v.rule for k, v in data['limits'].items()}
+        html(ui.ghat_row(s, lang, row_reason(s, data, lang), rules_by_param))
         with st.expander(f"🔍 {i18n.t('details', lang)}: {s.ghat}"):
             ghat_detail(s, data, lang)
     tiers = rules["scoring"]["tiers"]
@@ -239,6 +240,11 @@ def ghat_detail(s: Any, data: dict[str, Any], lang: str = "en") -> None:
         st.markdown(f"**{i18n.t('full_reason', lang)}:** {s.reason}")
         st.markdown(driver_explanation(s))
         st.dataframe(parameter_table(s), hide_index=True, width="stretch")
+        st.markdown("**Breaches per table (persistence)** - missing tables are listed, "
+                    "never counted as clean")
+        st.dataframe(pd.DataFrame(s.persistence).rename(columns={
+            "breaches": "breached (X)", "valid_tables": "tables with a reading (Y)",
+            "missing_tables": "not sampled (M)"}), hide_index=True, width="stretch")
         if s.matched_pairs:
             st.dataframe(pairs_table(s), hide_index=True, width="stretch")
         if s.unpaired_breaches:

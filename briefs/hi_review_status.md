@@ -3,6 +3,9 @@
 **Status: reviewed** - Hindi brief reviewed by Ashutosh Mishra (team), 11 Oct 2026, as reported
 to Claude in the build session. Drafted by Claude.
 
+Changed after the review (needs a quick re-check): the brief's new persistence line
+("विसर्जन के दौरान ... तालिकाओं में सीमा से ऊपर/नीचे") and the shorter heading.
+
 Not yet reviewed: the Hindi *interface* text added later the same day (`ui/i18n.py`,
 labels, help text and gap explanations). It is marked as a draft in the app.
 

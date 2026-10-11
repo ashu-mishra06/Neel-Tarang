@@ -64,6 +64,19 @@ def key_fact(s: Any, limits: dict[str, Limit]) -> dict[str, Any]:
             "breaches": str(top.pre_breaches), "valid": str(top.pre_valid)}
 
 
+def persist_fact(s: Any, limits: dict[str, Limit]) -> dict[str, str] | None:
+    """7A: 'BOD above limit during immersion in 6 of 6 tables' as shared strings."""
+    from scoring.persistence import headline
+
+    r = headline(getattr(s, "persistence", []))
+    if r is None:
+        return None
+    rule = limits[r["parameter"]].rule
+    return {"parameter": r["parameter"], "x": str(r["breaches"]), "y": str(r["valid_tables"]),
+            "en": {"min": "below", "max": "above"}.get(rule, "outside"),
+            "hi": {"min": "नीचे", "max": "ऊपर"}.get(rule, "बाहर")}
+
+
 def brief_context(scores: Scores, rules: dict[str, Any], limits: dict[str, Limit]
                   ) -> dict[str, Any]:
     """Everything the templates need. Numbers are strings formatted once, here."""
@@ -77,7 +90,8 @@ def brief_context(scores: Scores, rules: dict[str, Any], limits: dict[str, Limit
         "n_ghats": str(len(scores.ranked)),
         "tiers": {k: f"{v:g}" for k, v in rules["scoring"]["tiers"].items()},
         "top": [{"name": s.ghat, "tier": s.tier, "driver": s.driver,
-                 "confidence": s.confidence.level, "fact": key_fact(s, limits)} for s in top],
+                 "confidence": s.confidence.level, "fact": key_fact(s, limits),
+                 "persist": persist_fact(s, limits)} for s in top],
         "no_baseline": [b.ghat for b in scores.blind_spots],
         "missing_tables": [{"table": t, "ghat": g} for t, g in missing_tables],
         "hi": HI,

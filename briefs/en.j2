@@ -1,7 +1,7 @@
 Neel Tarang: brief for Durga visarjan, {{ date_en }}
 For: BMC visarjan planning officers. Standard: CPCB class B (outdoor bathing). Data: MPPCB reports 2023-2025.
 
-Ghats where readings suggest most concern (relative among {{ n_ghats }} ghats with data, not a safety certification; tier lines: Medium {{ tiers.medium }}, High {{ tiers.high }}):
+Ghats where readings suggest most concern (relative among {{ n_ghats }} ghats; not a safety certification):
 {% for g in top %}
 {{ loop.index }}. {{ g.name }}: {{ g.tier }} tier. {{ g.driver }}.
 {% set f = g.fact %}
@@ -11,6 +11,9 @@ Ghats where readings suggest most concern (relative among {{ n_ghats }} ghats wi
    {{ f.parameter }} {{ f.direction }} from {{ f.pre }} to {{ f.during }} {{ f.unit }} during immersion ({{ f.festival }} {{ f.year }}, Report {{ f.year }} p.{{ f.page }}).
 {% else %}
    {{ f.parameter }} breached its limit in {{ f.breaches }} of {{ f.valid }} pre-immersion readings.
+{% endif %}
+{% if g.persist %}
+   {{ g.persist.parameter }} {{ g.persist.en }} limit during immersion in {{ g.persist.x }} of {{ g.persist.y }} tables.
 {% endif %}
    Data confidence: {{ g.confidence }}.
 {% endfor %}
@@ -26,4 +29,4 @@ Blind spots:
 {% endfor %}
 
 Caveats: units assumed (reports print none); only 4 metals tested, none with a class B limit; past readings are from lake-side ghats, 2026 uses kunds; readings compared with limits only, no health conclusions.
-Report pages for every number: Neel Tarang app.
+Report pages: Neel Tarang app.

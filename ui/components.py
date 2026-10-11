@@ -57,7 +57,20 @@ def flag_chips(s: Any, lang: str = "en") -> list[str]:
     return [f'<span class="vgw-chip warn">{E(c)}</span>' for c in chips]
 
 
-def ghat_row(s: Any, lang: str = "en", reason: str | None = None) -> str:
+def persistence_chip(s: Any, rules_by_param: dict[str, str], lang: str = "en") -> str:
+    """PersistenceBadge: icon + text ('X of Y tables', 'n not sampled'), not colour alone."""
+    from scoring.persistence import headline
+
+    r = headline(getattr(s, "persistence", []))
+    if r is None:
+        return ""
+    icon = "↻" if r["label"] == "Repeat" else "•"
+    text = i18n.persistence_badge(r, rules_by_param.get(r["parameter"], ""), lang)
+    return f'<span class="vgw-chip">{icon} {E(text)}</span>'
+
+
+def ghat_row(s: Any, lang: str = "en", reason: str | None = None,
+             rules_by_param: dict[str, str] | None = None) -> str:
     """GhatRow: rank, name, water body, tier, driver, confidence, flags, one-line reason."""
     lowconf = " lowconf" if s.confidence.level == "Low" else ""
     chips = [tier_badge(s.tier, lang),
@@ -68,7 +81,8 @@ def ghat_row(s: Any, lang: str = "en", reason: str | None = None) -> str:
     return (f'<div class="vgw-row{lowconf}"><div class="vgw-rank">{s.rank}</div><div>'
             f'<div class="vgw-title">{E(s.ghat)}<span class="vgw-wb">{E(s.water_body)}</span>'
             f'</div><div class="vgw-chips">{"".join(chips)}</div>'
-            f'<div class="vgw-chips">{"".join(flag_chips(s, lang))}</div>'
+            f'<div class="vgw-chips">{persistence_chip(s, rules_by_param or {}, lang)}'
+            f'{"".join(flag_chips(s, lang))}</div>'
             f'<div class="vgw-reason">{E(reason or s.reason_short)}</div></div></div>')
 
 
