@@ -363,3 +363,26 @@ during (4 of 5, 1 not sampled) and DO pre. All four equal.
 The brief now carries one persistence line per top ghat (EN and HI, same
 numbers). The tier-line numbers were dropped from the brief heading to stay
 under 250 words.
+
+## 7B Test planner (Level 7)
+
+`scoring/planner.py`, Appendix F.2: priority = risk score x (1 + 1.0 x (1 -
+coverage)), so high risk and thin data come first. Ties: lower coverage,
+then name. The officer picks N (1 to 7, default 3). Designated ghats with no
+data (Arch Bridge) are on a separate "No baseline" line, shown first by
+default, with no score and no tier. Wording: "data suggests testing", never
+an instruction. Display only: the ranking is unchanged (tested). On the
+current data the top 3 are Bairagarh (priority 59.7), Shahpura (46.2) and
+Hathaikheda (45.3); Malikhedi (34.1, 72% coverage) moves above Rani
+Kamlapati (33.5, 100%).
+
+## UI and language (11 Oct 2026)
+
+The interface is bilingual, with a Hindi/English switch in the sidebar and
+Hindi as the default. The Hindi brief was reviewed by the team. The Hindi
+*interface* strings (`ui/i18n.py`) are a Claude draft, marked in the app.
+Report tables and evidence rows stay in English, as printed in the reports.
+Charts are plain Vega-Lite specs from engine numbers (`ui/charts.py`). A
+risk-breakdown bar shows the baseline part plus the festival part, which
+sum to the risk score. Per-ghat before/during charts plot every matched
+pair against the class B limit, with unpaired breaches as crosses.

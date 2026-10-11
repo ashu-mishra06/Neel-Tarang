@@ -27,10 +27,14 @@ streamlit run app.py
 No API key, no network and no setup screen are needed. Tested on Python 3.14
 (Windows); `requirements.txt` is pinned.
 
-Run the tests with `pytest` (217 tests). Print the ranking in a terminal with
+Run the tests with `pytest` (252 tests). Print the ranking in a terminal with
 `python -m scoring.engine`.
 
 ## What the officer sees
+
+The app opens in **Hindi**; switch to English in the sidebar. At the top:
+summary cards and a chart of *why* each ghat ranks where it does (before
+immersion vs worse during immersion).
 
 1. **Ranked ghats:** rank, tier (icon + text + colour), driver ("why"),
    confidence, and a one-line reason with its report page. Flags on the row:
@@ -39,16 +43,21 @@ Run the tests with `pytest` (217 tests). Print the ranking in a terminal with
    Open a row for the detail view: baseline vs festival numbers, per-parameter
    values, matched before/during pairs, every reading with the report page
    image, missing items and the gaps for that ghat.
-2. **No baseline:** Arch Bridge (on the reported 2026 list, no past readings).
+   Each row carries a persistence badge, e.g. "BOD above limit during
+   immersion in 6 of 6 tables". The detail view has before/during charts per
+   parameter against the CPCB limit.
+2. **Test planner:** "I can test N ghats before 20 Oct" gives an ordered list
+   (high risk and thin data first), with reasons and what the data suggests
+   testing. Arch Bridge is listed separately as "No baseline".
+3. **No baseline:** Arch Bridge (on the reported 2026 list, no past readings).
    No score and no tier.
-3. **Brief (EN / हिन्दी):** a one-page brief with copy and download (text or
-   print-ready HTML). The Hindi version is a draft, marked "needs human
-   review".
-4. **Re-score (week after):** upload new readings in the same CSV columns
+4. **Brief (हिन्दी / EN):** a one-page brief with copy and download (text or
+   print-ready HTML). The Hindi brief has been reviewed by the team.
+5. **Re-score (week after, sidebar):** upload new readings in the same CSV columns
    (sample with invented values in `data/samples/`). The ranking updates, a
    "what changed" table shows rank/tier/score before -> after, and uploaded
    rows are marked "user-supplied". Bad files get a plain list of problems.
-5. **Gaps & method:** the gap register, the method note (`docs/METHOD.md`) and
+6. **Gaps & method:** the gap register, the method note (`docs/METHOD.md`) and
    downloads of the derived data (scores JSON, gap register, evidence CSV).
 
 ## What works and what doesn't
@@ -67,7 +76,8 @@ Run the tests with `pytest` (217 tests). Print the ranking in a terminal with
 - Numbers come only from `scoring/`. No LLM is used at run time.
 
 **Doesn't / not yet**
-- Hindi text is **not reviewed** by a fluent speaker (`briefs/hi_review_status.md`).
+- The Hindi *interface* text is a draft. The Hindi brief is reviewed; the brief's new
+  persistence line needs a quick re-check (`briefs/hi_review_status.md`).
 - The human spot-check of 10 evidence rows (N2) is pending; see
   `docs/METHOD.md`.
 - The usability test with a non-technical teammate has not been run.
@@ -94,8 +104,8 @@ Run the tests with `pytest` (217 tests). Print the ranking in a terminal with
 
 ## Not included
 
-- **Level 7 enhancements, cut for time:** 7A persistence badge, 7B test
-  planner, 7C share card (text + image), 7D statewide benchmark.
+- **Level 7 enhancements cut for time:** 7C share card (text + image) and 7D
+  statewide benchmark. 7A persistence badge and 7B test planner are included.
 - **Level 9 stretch:** lake cross-check, map view, "ask the data" box.
 - **PDF export of the brief:** the brief is print-ready HTML and plain text.
 - **Embedded Noto Sans Devanagari font:** the Hindi HTML uses system fonts

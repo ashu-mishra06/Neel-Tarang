@@ -151,3 +151,9 @@ persistence:
   phases: [during, pre]
   min_tables: 3          # Y below this -> "Too few tables"
   repeat_fraction: [2, 3]   # X >= ceil(2/3 * Y) -> "Repeat" (exact integer maths)
+
+# 7B test planner (Appendix F.2). Display only: never changes the ranking.
+planner:
+  u_weight: 1.0        # priority = risk * (1 + u_weight * (1 - coverage))
+  default_n: 3
+  include_no_data_default: true

@@ -27,6 +27,7 @@ from scoring.reasons import cite
 from scoring.rescore import rescore, validate_upload
 from ui import charts, i18n
 from ui import components as ui
+from ui.planner_panel import planner_panel
 from ui.theme import css
 from ui.upload import changes_table, pending_upload, upload_panel
 
@@ -347,6 +348,7 @@ def main() -> None:
         if state.get("changes"):
             changes_table(state, label)
         overview_chart(data, lang)
+        planner_panel(data, lang)
         ranked_list(data, lang)
     with brief:
         brief_tab(data, lang)
