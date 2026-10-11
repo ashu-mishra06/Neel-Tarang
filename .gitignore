@@ -22,3 +22,6 @@ data/derived/pages/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Organisers' upload archive (contents already copied into data/ and resources/)
+*.zip

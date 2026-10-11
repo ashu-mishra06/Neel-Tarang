@@ -1,0 +1,4 @@
+# Keep organisers' files byte-for-byte (no line-ending conversion)
+data/*.csv -text
+data/DATA_DICTIONARY.md -text
+resources/** binary

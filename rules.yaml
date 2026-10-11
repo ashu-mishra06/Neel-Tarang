@@ -1,0 +1,58 @@
+# Visarjan Ghat Watch - rules readable by non-coders.
+# Every threshold, limit and weight used by the engine lives here.
+
+standard: CPCB class B (outdoor bathing)
+
+data:
+  readings_csv: data/bhopal_ghats_2023_2025.csv
+  limits_csv: data/cpcb_water_quality_criteria.csv
+
+# Column names in the organisers' CSV. The loader uses the first name it finds
+# in each list. Add a name here if the organisers' file uses a different one.
+readings_columns:
+  ghat: [ghat, ghat_name, site, site_name]
+  parameter: [parameter, param]
+  value: [value, reading, result]
+  flag: [flag, value_flag, remark, remarks]
+  year: [year]
+  festival: [festival]
+  phase: [phase]
+  source_page: [source_page, page]
+
+# Flag text (case and surrounding spaces ignored).
+flags:
+  missing: ["not sampled", "*", "**"]          # shown as missing, never clean
+  below_detection: ["BDL", "ND"]               # very low, NOT zero, NOT missing
+
+# CPCB criteria file (columns: class, parameter, limit_type, limit, unit).
+limits_csv:
+  class_name: B
+
+# Scored parameters with class B limits.
+#   rule: min   -> breach if value <  low  (higher is better)
+#   rule: max   -> breach if value >  high (lower is better)
+#   rule: range -> breach if value outside [low, high]
+#   scale: divisor that turns "how far past the limit" into 0..1 (Appendix A)
+#   criteria_name: the parameter's name in the CPCB criteria CSV
+# The limits below must equal the class B rows of the CPCB criteria CSV;
+# load_limits() stops with an error if they differ.
+scored_parameters:
+  pH:
+    criteria_name: pH
+    rule: range
+    low: 6.5
+    high: 8.5
+    scale: 1.5
+    unit: ""
+  Dissolved oxygen:
+    criteria_name: Dissolved oxygen
+    rule: min
+    low: 5.0
+    scale: 5.0
+    unit: mg/l
+  BOD:
+    criteria_name: BOD (5 days 20C)
+    rule: max
+    high: 3.0
+    scale: 3.0
+    unit: mg/l
