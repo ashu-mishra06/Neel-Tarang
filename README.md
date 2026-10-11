@@ -6,8 +6,8 @@ did it get worse during immersion? Every number links back to the MPPCB report
 page it came from. Missing data is shown as missing, never as clean.
 
 - **Track:** 2 (Visarjan Ghat Watch). Claude Impact Lab x Cerebras Cafe Compute, Bhopal, 11 Oct 2026
-- **Team:** _TODO: team name_
-- **Members:** _TODO: names_
+- **Team:** : Secretos
+- **Members:** : Ashutosh Mishra
 - **The one user:** a Bhopal Municipal Corporation (BMC) officer planning Durga
   visarjan, deciding where to send extra cleaning, aeration and water testing.
 
