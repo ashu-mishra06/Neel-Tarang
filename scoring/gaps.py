@@ -16,6 +16,7 @@ from scoring.config import load_rules, repo_path
 from scoring.engine import Scores, load_designated, score_all
 from scoring.limits import evaluate_frame, load_limits
 from scoring.loader import BELOW_DETECTION, MISSING, VALUE, load_readings
+from scoring.reasons import cite
 
 METALS = ["Chromium", "Lead", "Zinc", "Copper"]
 
@@ -86,7 +87,8 @@ def unpaired(scores: Scores) -> Gap | None:
         for u in s.unpaired_breaches:
             unit = f" {u['unit']}" if u["unit"] else ""
             items.append(f"{s.ghat}: {u['parameter']} {u['value']:g}{unit}, {u['festival']} "
-                         f"{u['year']} {u['phase']}, p.{u['source_page']} ({u['why']})")
+                         f"{u['year']} {u['phase']}, {cite(u['year'], u['source_page'])} "
+                         f"({u['why']})")
             ghats.append(s.ghat)
     if not items:
         return None

@@ -90,11 +90,17 @@ def load_readings(
     rules = rules or load_rules()
     path = path or repo_path(rules["data"]["readings_csv"])
     raw = pd.read_csv(path, dtype=str, keep_default_na=False, encoding="utf-8-sig")
-    df = _rename(raw, rules)
-    df["parameter"] = df["parameter"].str.strip()
-    df["phase"] = df["phase"].str.strip().str.lower()
+    return prepare_readings(raw, rules)
+
+
+def prepare_readings(raw: pd.DataFrame, rules: dict[str, Any]) -> pd.DataFrame:
+    """Canonical columns + status + value_num for any readings table (file or upload)."""
+    df = _rename(raw.copy(), rules)
+    for col in ("ghat", "parameter", "festival", "year", "flag", "value"):
+        df[col] = df[col].astype(str).str.strip()
+    df["phase"] = df["phase"].astype(str).str.strip().str.lower()
     df["status"] = [classify(v, f, rules) for v, f in zip(df["value"], df["flag"], strict=True)]
-    numeric = pd.to_numeric(df["value"].str.strip(), errors="coerce")
+    numeric = pd.to_numeric(df["value"], errors="coerce")
     df["value_num"] = numeric.where(df["status"] == VALUE)
     df.attrs["issues"] = _scored_bdl_issues(df, rules)
     return df

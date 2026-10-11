@@ -22,9 +22,20 @@ def _unit(limit: Limit) -> str:
     return f" {limit.unit}" if limit.unit else ""
 
 
-def _pages(year: str, *pages: str) -> str:
-    unique = list(dict.fromkeys(str(p) for p in pages))
-    return f"Report {year} p.{'/'.join(unique)}"
+USER_SUPPLIED_CITE = "user-supplied reading"
+
+
+def cite(year: str, *pages: str) -> str:
+    """'Report 2025 p.28' or 'Report 2025 p.28/29'; uploaded rows (no page) say so."""
+    real = list(dict.fromkeys(str(p).strip() for p in pages if str(p).strip()))
+    if not real:
+        return USER_SUPPLIED_CITE
+    text = f"Report {year} p.{'/'.join(real)}"
+    has_user = any(not str(p).strip() for p in pages)
+    return f"{text} + user-supplied" if has_user else text
+
+
+_pages = cite
 
 
 def baseline_sentence(g: pd.DataFrame, parameter: str, limit: Limit) -> str | None:

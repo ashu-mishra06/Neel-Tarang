@@ -36,11 +36,13 @@ HI = {
 
 
 def _pages(readings: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """Report pages per year; uploaded readings (no page) are listed as 'user-supplied'."""
     by_year: dict[str, list[str]] = {}
     for r in readings:
         pages = by_year.setdefault(str(r["year"]), [])
-        if str(r["source_page"]) not in pages:
-            pages.append(str(r["source_page"]))
+        page = str(r["source_page"]).strip() or "user-supplied"
+        if page not in pages:
+            pages.append(page)
     return [{"year": y, "pages": "/".join(p)} for y, p in sorted(by_year.items())]
 
 
@@ -54,7 +56,8 @@ def key_fact(s: Any, limits: dict[str, Limit]) -> dict[str, Any]:
         return {"kind": "pair", "parameter": pair["parameter"],
                 "pre": num(pair["pre"]), "during": num(pair["during"]),
                 "unit": limits[pair["parameter"]].unit, "festival": pair["festival"],
-                "year": str(pair["year"]), "page": str(pair["during_page"]),
+                "year": str(pair["year"]),
+                "page": str(pair["during_page"]).strip() or "user-supplied",
                 "direction": "fell" if limits[pair["parameter"]].rule == "min" else "rose"}
     top = max(s.parameters, key=lambda p: p.baseline or 0)
     return {"kind": "baseline", "parameter": top.parameter,

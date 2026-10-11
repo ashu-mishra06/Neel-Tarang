@@ -307,3 +307,36 @@ The links point to the public MPPCB site. They were built, not opened, in
 this session (no network use). The same page numbers were checked against
 the local copies of the PDFs, which the organisers downloaded from those
 URLs on 10 Oct 2026.
+
+## Re-score with new readings (Level 6)
+
+- **Upload** a CSV with the same columns as `data/bhopal_ghats_2023_2025.csv`.
+  Required columns: `site, year, festival, phase, parameter, value` (plus
+  `flag` when there is no value). The rest may be blank. A sample with
+  **invented** values is in `data/samples/` (see its README).
+- **Validation** (`scoring/rescore.py`) never raises for a bad file. It
+  lists up to 20 problems by row number:
+  - unknown ghat or parameter
+  - phase not pre/during/after; festival not Ganesh/Durga; year not 4 digits
+  - a value that is neither a number nor a recognised flag; a row with no
+    value and no flag, or with both
+  - an impossible value (pH outside 0-14, negatives)
+  - duplicate rows
+  - a row that would overwrite an existing report value
+- **Merge**: uploaded rows are tagged `source = uploaded`. They may fill a
+  report cell marked "not sampled", but never replace a report value. In the
+  evidence they show "user-supplied" with no link; reason text cites them as
+  "user-supplied reading".
+- **Confidence after an upload (decision, 11 Oct 2026).** Expected tables
+  stay the report tables (2023-2025). Uploaded readings in a new
+  festival-year (e.g. Durga 2026) count in the score but do not count
+  towards coverage. Otherwise one fresh upload would cap every other ghat's
+  confidence for "missing" a 2026 table. An upload that fills a gap inside a
+  report table does raise coverage. A designated ghat with no report data
+  (Arch Bridge) that gets uploaded readings is ranked, with Low confidence
+  (0% report coverage).
+- **What changed**: the app shows rank, tier, risk score, driver and
+  confidence before -> after for each ghat.
+- With the sample file, Arch Bridge enters at rank 1 (High, Low confidence:
+  one invented table). Malikhedi goes from Medium to High (26.7 -> 31.7). The
+  numbers are invented; this only demonstrates the mechanism.

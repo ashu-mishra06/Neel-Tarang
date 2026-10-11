@@ -21,7 +21,7 @@ from scoring.config import load_rules, repo_path
 from scoring.limits import Limit, evaluate_frame, limit_text, load_limits, worsen
 from scoring.loader import VALUE, load_readings
 from scoring.pairs import anchor_by_parameter, matched_pairs, unpaired_breaches, worsens
-from scoring.reasons import reason_parts, reason_text, short_reason
+from scoring.reasons import cite, reason_parts, reason_text, short_reason
 
 PHASES = ("pre", "during", "after")
 TIER_ORDER = {"High": 0, "Medium": 1, "Low": 2}
@@ -283,7 +283,7 @@ def _unpaired_items(unpaired: list[dict[str, Any]]) -> list[str]:
     for u in unpaired:
         unit = f" {u['unit']}" if u["unit"] else ""
         out.append(f"unpaired breach: {u['parameter']} {u['value']:g}{unit}, {u['festival']} "
-                   f"{u['year']} {u['phase']} (p.{u['source_page']}; {u['why']})")
+                   f"{u['year']} {u['phase']} ({cite(u['year'], u['source_page'])}; {u['why']})")
     return out
 
 
@@ -297,7 +297,9 @@ def confidence_for(
     Order: level from coverage -> caps (latest Durga missing; uncertain site
     match) -> one level off per `unpaired_breach_downgrade` if any unpaired breach.
     """
-    valid = int((g["status"] == VALUE).sum())
+    in_expected = [(f, y) in set(expected_tables)
+                   for f, y in zip(g["festival"], g["year"], strict=True)]
+    valid = int(((g["status"] == VALUE) & pd.Series(in_expected, index=g.index)).sum())
     expected = len(expected_tables) * len(PHASES) * n_parameters
     coverage = valid / expected if expected else 0.0
     present = set(zip(g["festival"], g["year"], strict=True))
@@ -429,13 +431,17 @@ def rank(scores: list[GhatScore]) -> list[GhatScore]:
 
 def _context(df: pd.DataFrame, limits: dict[str, Limit], rules: dict[str, Any],
              designated: pd.DataFrame) -> dict[str, Any]:
-    tables = sorted(set(zip(df["festival"], df["year"], strict=True)),
+    # Expected tables come from the reports only. Uploaded readings in a new
+    # festival-year (e.g. Durga 2026) are scored but do not raise the bar for
+    # every other ghat; uploads that fill an existing report table do count.
+    report = df[df["source"] != "uploaded"] if "source" in df else df
+    tables = sorted(set(zip(report["festival"], report["year"], strict=True)),
                     key=lambda t: (t[1], t[0]))
     durga_years = sorted(y for f, y in tables if f == "Durga")
     return {
         "rules": rules, "limits": limits, "expected_tables": tables,
         "latest_durga": ("Durga", durga_years[-1]) if durga_years else None,
-        "designated_sites": set(designated["data_site"]) - {""},
+        "designated_sites": {r.data_site or r.ghat_name for r in designated.itertuples()},
     }
 
 
@@ -454,7 +460,7 @@ def score_all(df: pd.DataFrame | None = None, rules: dict[str, Any] | None = Non
     blind = [r for r in results if isinstance(r, BlindSpot)]
     in_data = set(scored["ghat"])
     for row in designated.itertuples():
-        if not row.data_site or row.data_site not in in_data:
+        if (row.data_site or row.ghat_name) not in in_data:
             blind.append(BlindSpot(row.ghat_name, "Designated for 2026 but no readings in "
                                    "MPPCB 2023-2025 data"))
     ranked = rank([r for r in results if isinstance(r, GhatScore)])

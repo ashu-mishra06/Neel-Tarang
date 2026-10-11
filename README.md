@@ -27,7 +27,7 @@ streamlit run app.py
 No API key, no network and no setup screen are needed. Tested on Python 3.14
 (Windows); `requirements.txt` is pinned.
 
-Run the tests with `pytest` (153 tests). Print the ranking in a terminal with
+Run the tests with `pytest` (217 tests). Print the ranking in a terminal with
 `python -m scoring.engine`.
 
 ## What the officer sees
@@ -44,7 +44,11 @@ Run the tests with `pytest` (153 tests). Print the ranking in a terminal with
 3. **Brief (EN / हिन्दी):** a one-page brief with copy and download (text or
    print-ready HTML). The Hindi version is a draft, marked "needs human
    review".
-4. **Gaps & method:** the gap register, the method note (`docs/METHOD.md`) and
+4. **Re-score (week after):** upload new readings in the same CSV columns
+   (sample with invented values in `data/samples/`). The ranking updates, a
+   "what changed" table shows rank/tier/score before -> after, and uploaded
+   rows are marked "user-supplied". Bad files get a plain list of problems.
+5. **Gaps & method:** the gap register, the method note (`docs/METHOD.md`) and
    downloads of the derived data (scores JSON, gap register, evidence CSV).
 
 ## What works and what doesn't
@@ -57,6 +61,7 @@ Run the tests with `pytest` (153 tests). Print the ranking in a terminal with
   / 100 above 3 mg/l.
 - Every printed value (1,476) was found on its cited PDF page (automated
   check). Five page images were checked by eye.
+- Re-score with uploaded readings, with validation and a "what changed" table.
 - The English brief and Hindi draft are generated from the same engine
   numbers. A test checks that the numbers are identical.
 - Numbers come only from `scoring/`. No LLM is used at run time.
@@ -89,8 +94,6 @@ Run the tests with `pytest` (153 tests). Print the ranking in a terminal with
 
 ## Not included
 
-- **Level 6, re-score with uploaded readings:** not built yet; planned
-  next.
 - **Level 7 enhancements, cut for time:** 7A persistence badge, 7B test
   planner, 7C share card (text + image), 7D statewide benchmark.
 - **Level 9 stretch:** lake cross-check, map view, "ask the data" box.

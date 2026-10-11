@@ -23,10 +23,25 @@ from scoring.evidence import evidence_for_frame, render_page_image
 from scoring.gaps import build_gap_register
 from scoring.limits import evaluate_frame, load_limits
 from scoring.loader import load_readings
+from scoring.reasons import cite
+from scoring.rescore import rescore, validate_upload
 from ui import components as ui
 from ui.theme import css
+from ui.upload import pending_upload, upload_panel
 
 BANNER = "Durga visarjan: 20 Oct 2026 | Standard: CPCB class B | Data: MPPCB 2023-2025"
+
+
+def build_data(df: pd.DataFrame, rules: dict[str, Any], limits: Any,
+               scores: Any = None) -> dict[str, Any]:
+    """Everything the screens show, computed by the engine from one readings table."""
+    scores = scores or score_all(df, rules, limits)
+    evidence = evidence_for_frame(evaluate_frame(df, limits), limits, rules)
+    by_ghat: dict[str, list] = defaultdict(list)
+    for row in evidence:
+        by_ghat[row.ghat].append(row)
+    return {"rules": rules, "scores": scores, "evidence": dict(by_ghat),
+            "gaps": build_gap_register(scores, df, rules), "briefs": build_briefs(scores)}
 
 
 @st.cache_resource(show_spinner="Scoring ghats from the MPPCB readings...")
@@ -35,13 +50,27 @@ def load_all(rules_mtime_ns: int) -> dict[str, Any]:
     rules = load_rules()
     limits = load_limits(rules=rules)
     df = load_readings(rules=rules)
-    scores = score_all(df, rules, limits)
-    evidence = evidence_for_frame(evaluate_frame(df, limits), limits, rules)
-    by_ghat: dict[str, list] = defaultdict(list)
-    for row in evidence:
-        by_ghat[row.ghat].append(row)
-    return {"rules": rules, "scores": scores, "evidence": dict(by_ghat),
-            "gaps": build_gap_register(scores, df, rules), "briefs": build_briefs(scores)}
+    data = build_data(df, rules, limits)
+    data.update(df=df, limits=limits)
+    return data
+
+
+@st.cache_resource(show_spinner="Re-scoring with the uploaded readings...", max_entries=8)
+def load_with_upload(rules_mtime_ns: int, upload: bytes) -> dict[str, Any]:
+    """Validate the upload; if valid, re-score. Never raises for a bad file."""
+    base = load_all(rules_mtime_ns)
+    rules, limits = base["rules"], base["limits"]
+    result = validate_upload(upload, base["df"], rules, limits)
+    if not result.ok:
+        return {"data": base, "result": result}
+    try:
+        merged, _, after, changes = rescore(base["df"], result.rows, rules, limits)
+    except Exception as err:  # noqa: BLE001 - show a message, never a stack trace
+        return {"data": base, "result": result,
+                "error": f"Could not re-score with this file: {err}"}
+    data = build_data(merged, rules, limits, after)
+    data.update(df=merged, limits=limits)
+    return {"data": data, "result": result, "changes": changes}
 
 
 def html(markup: str) -> None:
@@ -81,7 +110,8 @@ def ranked_list(data: dict[str, Any]) -> None:
             ghat_detail(s, data)
     t = rules["scoring"]["tiers"]
     st.caption(f"Tier lines: Medium ≥ {t['medium']:g}, High ≥ {t['high']:g} (risk score). "
-               "Tiers show relative concern among these 7 ghats, not a safety certification.")
+               f"Tiers show relative concern among these {len(scores.ranked)} ghats, not a safety "
+               "certification.")
     if scores.blind_spots:
         st.subheader("No baseline")
         st.caption("Designated or listed ghats with no usable past readings. Not ranked.")
@@ -121,7 +151,7 @@ def pairs_table(s: Any) -> pd.DataFrame:
     return pd.DataFrame([{
         "Table": f"{p['festival']} {p['year']}", "Parameter": p["parameter"],
         "Before": p["pre"], "During": p["during"], "Worsening": round(p["worsening"], 2),
-        "Page": f"Report {p['year']} p.{p['pre_page']}",
+        "Source": cite(p["year"], p["pre_page"], p["during_page"]),
     } for p in s.matched_pairs])
 
 
@@ -181,11 +211,11 @@ def ghat_detail(s: Any, data: dict[str, Any]) -> None:
         for u in s.unpaired_breaches:
             unit = f" {u['unit']}" if u["unit"] else ""
             st.markdown(f"- {u['parameter']} {u['value']:g}{unit}, {u['festival']} {u['year']} "
-                        f"{u['phase']}, Report {u['year']} p.{u['source_page']} - {u['why']}")
+                        f"{u['phase']}, {cite(u['year'], u['source_page'])} - {u['why']}")
     if s.critical:
         st.markdown(f"**{s.critical.note}**")
         st.markdown("\n".join(f"- {r['festival']} {r['year']} {r['phase']}, "
-                              f"Report {r['year']} p.{r['source_page']}"
+                              f"{cite(r['year'], r['source_page'])}"
                               for r in s.critical.readings))
     confidence_block(s)
     for g in [g for g in data["gaps"] if s.ghat in g.ghats]:
@@ -250,9 +280,20 @@ def main() -> None:
     html(css())
     st.title("Neel Tarang")
     html(f'<div class="vgw-banner">{BANNER}</div>')
-    data = load_all(RULES_PATH.stat().st_mtime_ns)
+    mtime = RULES_PATH.stat().st_mtime_ns
+    upload, label = pending_upload()
+    state: dict[str, Any] = {"label": label}
+    if upload is None:
+        data = load_all(mtime)
+    else:
+        state.update(load_with_upload(mtime, upload))
+        data = state["data"]
     ranking, brief, gaps = st.tabs(["Ranked ghats", "Brief (हिन्दी / EN)", "Gaps & method"])
     with ranking:
+        upload_panel(state)
+        if state.get("changes"):
+            st.info(f"Showing scores that include uploaded readings from {label} "
+                    "(marked 'user-supplied' in the evidence).")
         ranked_list(data)
     with brief:
         brief_tab(data)
