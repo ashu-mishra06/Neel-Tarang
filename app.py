@@ -88,7 +88,7 @@ def fmt(value: float | None, digits: int = 2) -> str:
 
 def how_to_read(rules: dict[str, Any], lang: str) -> None:
     tiers = rules["scoring"]["tiers"]
-    with st.expander(f"ℹ️ {i18n.t('how_title', lang)}"):
+    with st.expander(i18n.t("how_title", lang)):
         st.markdown(i18n.t("how_body", lang, high=f"{tiers['high']:g}",
                            medium=f"{tiers['medium']:g}"))
 
@@ -104,7 +104,7 @@ def kpis(data: dict[str, Any], lang: str) -> None:
 
 
 def overview_chart(data: dict[str, Any], lang: str) -> None:
-    html(f'<div class="vgw-section">{i18n.t("chart_title", lang)}</div>')
+    html(ui.h2(i18n.t("chart_title", lang)))
     labels = {"baseline": i18n.t("part_baseline", lang),
               "festival": i18n.t("part_festival", lang), "risk": i18n.t("risk", lang)}
     tiers = {k: i18n.tier(k, lang) for k in ("High", "Medium", "Low", "NoData")}
@@ -126,13 +126,13 @@ def ranked_list(data: dict[str, Any], lang: str) -> None:
     for s in scores.ranked:
         rules_by_param = {k: v.rule for k, v in data['limits'].items()}
         html(ui.ghat_row(s, lang, row_reason(s, data, lang), rules_by_param))
-        with st.expander(f"🔍 {i18n.t('details', lang)}: {s.ghat}"):
+        with st.expander(f"{i18n.t('details', lang)}: {s.ghat}"):
             ghat_detail(s, data, lang)
     tiers = rules["scoring"]["tiers"]
     st.caption(i18n.t("tier_note", lang, medium=f"{tiers['medium']:g}",
                       high=f"{tiers['high']:g}", n=len(scores.ranked)))
     if scores.blind_spots:
-        st.subheader(i18n.t("no_baseline_title", lang))
+        html(ui.h2(i18n.t("no_baseline_title", lang)))
         for b in scores.blind_spots:
             html(ui.no_baseline_card(b.ghat, b.why, lang))
 
@@ -230,8 +230,8 @@ def ghat_detail(s: Any, data: dict[str, Any], lang: str = "en") -> None:
     cols[1].metric(i18n.t("part_baseline", lang), fmt(s.baseline, 3))
     cols[2].metric(i18n.t("part_festival", lang), fmt(s.festival, 3))
     chart_tab, numbers_tab, pages_tab, gaps_tab_ = st.tabs([
-        f"📈 {i18n.t('d_chart', lang)}", f"🔢 {i18n.t('d_numbers', lang)}",
-        f"📄 {i18n.t('d_evidence', lang)}", f"⚑ {i18n.t('d_gaps', lang)}"])
+        i18n.t("d_chart", lang), i18n.t("d_numbers", lang),
+        i18n.t("d_evidence", lang), i18n.t("d_gaps", lang)])
     with chart_tab:
         pairs_charts(s, data, lang)
     with numbers_tab:
@@ -318,18 +318,25 @@ def method_tab(data: dict[str, Any]) -> None:
 # ---------- pages (one per section in the top navigation) ----------
 
 
+def section_header(key: str, lang: str) -> None:
+    """Same header on every section: context eyebrow, title, one-line description."""
+    html(ui.page_header(i18n.t("banner", lang), i18n.t(f"nav_{key}", lang),
+                        i18n.t(f"lede_{key}", lang)))
+
+
 def page_ghats(data: dict[str, Any], state: dict[str, Any], lang: str) -> None:
     html(ui.hero(lang))
+    html(f'<p class="nt-lede">{i18n.t("lede_ghats", lang)}</p>')
     if state.get("changes"):
         st.info(i18n.t("in_use_banner", lang, label=state["label"]))
     kpis(data, lang)
     overview_chart(data, lang)
-    html(f'<div class="vgw-section">{i18n.t("tab_rank", lang)}</div>')
+    html(ui.h2(i18n.t("tab_rank", lang)))
     ranked_list(data, lang)
 
 
 def page_upload(state: dict[str, Any], lang: str) -> None:
-    html(f'<div class="vgw-section">{i18n.t("up_title", lang)}</div>')
+    section_header("upload", lang)
     left, right = st.columns([2, 3], gap="large")
     with left:
         upload_panel(state, lang)
@@ -339,13 +346,15 @@ def page_upload(state: dict[str, Any], lang: str) -> None:
 
 
 def page_gaps(data: dict[str, Any], lang: str) -> None:
+    section_header("gaps", lang)
     gaps_tab(data, lang)
     st.divider()
     method_tab(data)
 
 
 def main() -> None:
-    st.set_page_config(page_title="Neel Tarang · नील तरंग", page_icon="🌊", layout="wide",
+    st.set_page_config(page_title="Neel Tarang · नील तरंग", page_icon=":material/water:",
+                       layout="wide",
                        initial_sidebar_state="collapsed")
     html(css())
     lang = "en" if st.session_state.get(LANG_KEY) else "hi"
@@ -362,9 +371,11 @@ def main() -> None:
         page_ghats(data, state, lang)
 
     def planner() -> None:
+        section_header("planner", lang)
         planner_panel(data, lang)
 
     def brief() -> None:
+        section_header("brief", lang)
         brief_tab(data, lang)
 
     def readings() -> None:
@@ -374,22 +385,25 @@ def main() -> None:
         page_gaps(data, lang)
 
     nav = st.navigation([
-        st.Page(ghats, title=i18n.t("nav_ghats", lang), icon="🏆", url_path="ghats",
-                default=True),
-        st.Page(planner, title=i18n.t("nav_planner", lang), icon="🧪", url_path="planner"),
-        st.Page(brief, title=i18n.t("nav_brief", lang), icon="📝", url_path="brief"),
-        st.Page(readings, title=i18n.t("nav_upload", lang), icon="➕", url_path="readings"),
-        st.Page(gaps, title=i18n.t("nav_gaps", lang), icon="🚩", url_path="gaps"),
+        st.Page(ghats, title=i18n.t("nav_ghats", lang), icon=":material/format_list_numbered:",
+                url_path="ghats", default=True),
+        st.Page(planner, title=i18n.t("nav_planner", lang), icon=":material/fact_check:",
+                url_path="planner"),
+        st.Page(brief, title=i18n.t("nav_brief", lang), icon=":material/description:",
+                url_path="brief"),
+        st.Page(readings, title=i18n.t("nav_upload", lang), icon=":material/upload_file:",
+                url_path="readings"),
+        st.Page(gaps, title=i18n.t("nav_gaps", lang), icon=":material/rule:", url_path="gaps"),
     ], position="top")
     left, right = st.columns([5, 1], vertical_alignment="center")
     with left:
         html(ui.brand())
     with right:
-        st.toggle("English", key=LANG_KEY, help="हिन्दी ⇄ English")
-    if lang == "hi":
-        st.caption(i18n.t("ui_draft", lang))
+        st.toggle("English", key=LANG_KEY, help="हिन्दी / English")
     nav.run()
     st.caption(i18n.t("footer", lang))
+    if lang == "hi":
+        st.caption(i18n.t("ui_draft", lang))
 
 
 if __name__ == "__main__":

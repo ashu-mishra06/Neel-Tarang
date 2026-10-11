@@ -111,6 +111,29 @@ TEXT: dict[str, dict[str, str]] = {
 
 TEXT.update({
     "nav_ghats": {"en": "Ghats", "hi": "घाट"},
+    "low_conf": {"en": "Low confidence", "hi": "कम भरोसा"},
+    "lede_ghats": {
+        "en": "Ranked from MPPCB water-quality readings, 2023-2025. Open a ghat for the numbers, "
+              "charts and the report page behind every figure.",
+        "hi": "MPPCB 2023-2025 की जल-गुणवत्ता रीडिंग से क्रम। हर आँकड़े के आँकड़े, चार्ट और रिपोर्ट "
+              "पृष्ठ देखने के लिए घाट खोलें।"},
+    "lede_planner": {
+        "en": "Limited test kits? Choose how many ghats you can test; high risk and thin data "
+              "come first.",
+        "hi": "जाँच किट सीमित हैं? चुनें कितने घाटों की जाँच संभव है; ऊँचा जोखिम और कम आँकड़े पहले।"},
+    "lede_brief": {
+        "en": "A one-page brief for seniors and field teams. Copy it into a message or "
+              "download it.",
+        "hi": "वरिष्ठ अधिकारियों और फ़ील्ड टीमों के लिए एक पृष्ठ का सारांश। संदेश में कॉपी करें या "
+              "डाउनलोड करें।"},
+    "lede_upload": {
+        "en": "Got new test results? Upload them to re-score every ghat. Report values are never "
+              "overwritten.",
+        "hi": "नई जाँच के परिणाम आए? सभी घाटों को दोबारा आँकने के लिए अपलोड करें। रिपोर्ट के मान कभी "
+              "नहीं बदले जाते।"},
+    "lede_gaps": {
+        "en": "What the data does not cover, and how the scores are made.",
+        "hi": "आँकड़े क्या नहीं बताते, और अंक कैसे बनते हैं।"},
     "nav_planner": {"en": "Test planner", "hi": "जाँच योजना"},
     "nav_brief": {"en": "Brief", "hi": "सारांश"},
     "nav_upload": {"en": "Add readings", "hi": "नई रीडिंग"},

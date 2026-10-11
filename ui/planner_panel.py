@@ -12,8 +12,8 @@ from ui import components as ui
 from ui import i18n
 
 L = {
-    "title": {"en": "🧪 Test planner: I can test N ghats before 20 Oct",
-              "hi": "🧪 जाँच योजना: 20 अक्टूबर से पहले N घाटों की जाँच संभव है"},
+    "title": {"en": "I can test N ghats before 20 Oct",
+              "hi": "20 अक्टूबर से पहले N घाटों की जाँच संभव है"},
     "n": {"en": "How many ghats can you test?", "hi": "कितने घाटों की जाँच कर सकते हैं?"},
     "include": {"en": "Include designated ghats with no past readings",
                 "hi": "बिना पिछली रीडिंग वाले घोषित घाट भी दिखाएँ"},
@@ -56,8 +56,7 @@ def _reason_chips(item: Any, lang: str) -> list[str]:
 
 def planner_panel(data: dict[str, Any], lang: str) -> None:
     rules, scores = data["rules"], data["scores"]
-    with st.container(border=True):
-        st.markdown(f"#### {_t('title', lang)}")
+    with st.container():
         cols = st.columns([2, 3])
         n = cols[0].slider(_t("n", lang), 1, len(scores.ranked),
                            rules["planner"]["default_n"], key="plan_n")
@@ -67,16 +66,18 @@ def planner_panel(data: dict[str, Any], lang: str) -> None:
         plan = make_plan(scores, n, include, rules)
         st.caption(_t("how", lang))
         for name in plan.no_baseline:
-            ui_html(f'<div class="vgw-card">{ui.tier_badge("NoData", lang)} '
-                    f'<b>{escape(name)}</b> - '
-                    f'{_t("nobase", lang)}</div>')
+            ui_html(f'<div class="nt-plan"><div class="nt-rank">-</div><div>'
+                    f'<div class="nt-name">{escape(name)}</div>'
+                    f'<div class="nt-meta">{ui.tier_badge("NoData", lang)}</div>'
+                    f'<div class="nt-reason">{_t("nobase", lang)}</div></div></div>')
         for item in plan.items:
-            chips = "".join(f'<span class="vgw-chip">{escape(c)}</span>'
-                            for c in _reason_chips(item, lang))
-            ui_html(f'<div class="vgw-card"><b>{item.rank_in_plan}. {escape(item.ghat)}</b> '
-                    f'{ui.tier_badge(item.tier, lang)} '
-                    f'<span class="vgw-muted">{_t("priority", lang)} {item.priority:.1f}</span>'
-                    f'<div class="vgw-chips">{chips}</div></div>')
+            reasons = " · ".join(escape(c) for c in _reason_chips(item, lang))
+            ui_html(f'<div class="nt-plan"><div class="nt-rank">{item.rank_in_plan}</div><div>'
+                    f'<div class="nt-name">{escape(item.ghat)}</div>'
+                    f'<div class="nt-meta">{ui.tier_badge(item.tier, lang)}'
+                    f'<span class="sep">|</span><span class="k">{_t("priority", lang)}</span> '
+                    f'{item.priority:.1f}</div>'
+                    f'<div class="nt-flags">{reasons}</div></div></div>')
         st.info(_t("what", lang))
 
 

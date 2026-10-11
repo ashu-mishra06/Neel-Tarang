@@ -30,9 +30,26 @@ def test_missing_style_contrast() -> None:
 
 
 @pytest.mark.parametrize("tier", ["High", "Medium", "Low", "NoData"])
-def test_tier_badge_has_icon_and_text(tier: str) -> None:
+def test_tier_badge_has_shape_and_text(tier: str) -> None:
+    """Colour is never the only signal: text label + a CSS-drawn shape per tier."""
+    from ui.theme import css
+
     badge = ui.tier_badge(tier)
-    assert TIER[tier]["icon"] in badge and TIER[tier]["label"] in badge
+    assert TIER[tier]["label"] in badge and f"nt-tag {tier.lower()}" in badge
+    assert f".nt-tag.{tier.lower()}::before" in css()
+
+
+def test_no_emoji_or_pictographs_in_ui() -> None:
+    """The interface uses Material icons in navigation only; no emoji anywhere."""
+
+    emoji = re.compile("[🌀-🫿☀-➿■-◿⬀-⯿"
+                       "⊕-⊘]")
+    root = repo_path()
+    files = [root / "app.py", *sorted((root / "ui").glob("*.py"))]
+    hits = [f"{f.name}:{i}" for f in files
+            for i, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1)
+            if emoji.search(line)]
+    assert hits == []
 
 
 def test_near_boundary_text() -> None:
