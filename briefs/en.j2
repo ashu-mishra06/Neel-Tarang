@@ -1,0 +1,29 @@
+Visarjan Ghat Watch: brief for Durga visarjan, {{ date_en }}
+For: BMC visarjan planning officers. Standard: CPCB class B (outdoor bathing). Data: MPPCB reports 2023-2025.
+
+Ghats where readings suggest most concern (relative among {{ n_ghats }} ghats with data, not a safety certification; tier lines: Medium {{ tiers.medium }}, High {{ tiers.high }}):
+{% for g in top %}
+{{ loop.index }}. {{ g.name }}: {{ g.tier }} tier. {{ g.driver }}.
+{% set f = g.fact %}
+{% if f.kind == "critical" %}
+   Dissolved oxygen reported at 0 mg/l {{ f.count }} times ({% for s in f.sources %}Report {{ s.year }} p.{{ s.pages }}{% if not loop.last %}; {% endif %}{% endfor %}).
+{% elif f.kind == "pair" %}
+   {{ f.parameter }} {{ f.direction }} from {{ f.pre }} to {{ f.during }} {{ f.unit }} during immersion ({{ f.festival }} {{ f.year }}, Report {{ f.year }} p.{{ f.page }}).
+{% else %}
+   {{ f.parameter }} breached its limit in {{ f.breaches }} of {{ f.valid }} pre-immersion readings.
+{% endif %}
+   Data confidence: {{ g.confidence }}.
+{% endfor %}
+
+Where the data suggests checking first: readings suggest testing DO, BOD and pH at these ghats before {{ date_en }}, and during immersion on the day.
+
+Blind spots:
+{% for name in no_baseline %}
+- {{ name }}: on the reported 2026 list, no past readings; any test is new information.
+{% endfor %}
+{% for m in missing_tables %}
+- {{ m.ghat }}: no {{ m.table }} table.
+{% endfor %}
+
+Caveats: units assumed (reports print none); only 4 metals tested, none with a class B limit; past readings are from lake-side ghats, 2026 uses kunds; readings compared with limits only, no health conclusions.
+Report pages for every number: Visarjan Ghat Watch app.

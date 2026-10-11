@@ -7,16 +7,20 @@ Works with no network and no API key.
 
 from __future__ import annotations
 
+import io
+import json
 from collections import defaultdict
+from dataclasses import asdict
 from typing import Any
 
 import pandas as pd
 import streamlit as st
 
+from scoring.brief import build_briefs
 from scoring.config import load_rules, repo_path
-from scoring.engine import score_all, write_json
+from scoring.engine import score_all
 from scoring.evidence import evidence_for_frame, render_page_image
-from scoring.gaps import build_gap_register, write_gap_register
+from scoring.gaps import build_gap_register
 from scoring.limits import evaluate_frame, load_limits
 from scoring.loader import load_readings
 from ui import components as ui
@@ -37,7 +41,7 @@ def load_all() -> dict[str, Any]:
     for row in evidence:
         by_ghat[row.ghat].append(row)
     return {"rules": rules, "scores": scores, "evidence": dict(by_ghat),
-            "gaps": build_gap_register(scores, df, rules)}
+            "gaps": build_gap_register(scores, df, rules), "briefs": build_briefs(scores)}
 
 
 def html(markup: str) -> None:
@@ -68,22 +72,20 @@ def how_to_read(rules: dict[str, Any]) -> None:
             "- Readings are compared with CPCB class B limits only. No health conclusions.")
 
 
-def select_ghat(name: str) -> None:
-    st.session_state["detail_ghat"] = name
-
-
 def ranked_list(data: dict[str, Any]) -> None:
-    scores = data["scores"]
-    how_to_read(data["rules"])
+    scores, rules = data["scores"], data["rules"]
+    how_to_read(rules)
     for s in scores.ranked:
         html(ui.ghat_row(s))
-        st.button(f"Details: {s.ghat}", key=f"btn_{s.rank}", on_click=select_ghat,
-                  args=(s.ghat,))
-    no_baseline = [b for b in scores.blind_spots]
-    if no_baseline:
+        with st.expander(f"Details and evidence: {s.ghat}"):
+            ghat_detail(s, data)
+    t = rules["scoring"]["tiers"]
+    st.caption(f"Tier lines: Medium ≥ {t['medium']:g}, High ≥ {t['high']:g} (risk score). "
+               "Tiers show relative concern among these 7 ghats, not a safety certification.")
+    if scores.blind_spots:
         st.subheader("No baseline")
         st.caption("Designated or listed ghats with no usable past readings. Not ranked.")
-        for b in no_baseline:
+        for b in scores.blind_spots:
             html(ui.no_baseline_card(b.ghat, b.why))
 
 
@@ -156,19 +158,13 @@ def evidence_section(rows: list[Any], rules: dict[str, Any], show_images: bool) 
                     st.info(f"Page image not available: {err}")
 
 
-def detail(data: dict[str, Any]) -> None:
-    scores, rules = data["scores"], data["rules"]
-    names = [s.ghat for s in scores.ranked]
-    st.subheader("Ghat detail")
-    if st.session_state.get("detail_ghat") not in names:
-        st.session_state["detail_ghat"] = names[0]
-    name = st.selectbox("Show details for", names, key="detail_ghat")
-    s = next(x for x in scores.ranked if x.ghat == name)
-    html(ui.ghat_row(s))
+def ghat_detail(s: Any, data: dict[str, Any]) -> None:
+    """Detail for one ranked ghat (shown inside its expander)."""
+    rules, key = data["rules"], f"g{s.rank}"
     if s.site_match_uncertain:
         st.warning(s.site_match_note)
     cols = st.columns(3)
-    cols[0].metric("Risk score", f"{s.risk_score:.1f}", help="0-100; decides the tier")
+    cols[0].metric("Risk score", f"{s.risk_score:.1f}", help="Decides the tier")
     cols[1].metric("Baseline (before immersion)", fmt(s.baseline, 3),
                    help="0.5 x breach rate + 0.5 x mean exceedance, pre-immersion readings")
     cols[2].metric("Festival effect (worst parameter)", fmt(s.festival, 3),
@@ -192,19 +188,33 @@ def detail(data: dict[str, Any]) -> None:
                               f"Report {r['year']} p.{r['source_page']}"
                               for r in s.critical.readings))
     confidence_block(s)
-    ghat_gaps = [g for g in data["gaps"] if s.ghat in g.ghats]
-    if ghat_gaps:
-        st.markdown("**Gaps for this ghat**")
-        for g in ghat_gaps:
-            html(ui.gap_card(g))
+    for g in [g for g in data["gaps"] if s.ghat in g.ghats]:
+        html(ui.gap_card(g))
     st.markdown("**Evidence** - every reading, with the report page it came from")
     scope = st.radio("Show", ["Scored parameters (pH, DO, BOD)", "All parameters"],
-                     horizontal=True, key="ev_scope")
-    show_images = st.toggle("Show page images", value=True, key="ev_images")
+                     horizontal=True, key=f"scope_{key}")
+    show_images = st.toggle("Show report page images", value=s.rank == 1, key=f"img_{key}")
     rows = data["evidence"].get(s.ghat, [])
     if scope.startswith("Scored"):
         rows = [r for r in rows if r.scored]
     evidence_section(rows, rules, show_images)
+
+
+def brief_tab(data: dict[str, Any]) -> None:
+    lang = st.radio("Language", ["English", "हिन्दी (draft - needs human review)"],
+                    horizontal=True, key="brief_lang")
+    code = "en" if lang == "English" else "hi"
+    brief = data["briefs"][code]
+    if code == "hi":
+        st.warning("Hindi text is a machine draft until a fluent reviewer signs off "
+                   "(briefs/hi_review_status.md). Numbers are identical to the English brief.")
+    st.caption("Copy: use the copy icon at the top right of the box.")
+    st.code(brief["text"], language=None, wrap_lines=True)
+    cols = st.columns(2)
+    cols[0].download_button("Download text", brief["text"].encode("utf-8"),
+                            f"visarjan_brief_{code}.txt", mime="text/plain")
+    cols[1].download_button("Download print-ready HTML", brief["html"].encode("utf-8"),
+                            f"visarjan_brief_{code}.html", mime="text/html")
 
 
 # ---------- gaps and method ----------
@@ -221,16 +231,16 @@ def gaps_tab(data: dict[str, Any]) -> None:
 
 
 def method_tab(data: dict[str, Any]) -> None:
-    rules = data["rules"]
     st.markdown("**Download the derived data** (all numbers come from the engine):")
     cols = st.columns(3)
-    scores_path = write_json(data["scores"])
-    gaps_path = write_gap_register(data["gaps"])
-    evidence_path = repo_path(rules["evidence_csv"])
-    cols[0].download_button("ghat_scores.json", scores_path.read_bytes(), "ghat_scores.json")
-    cols[1].download_button("gap_register.json", gaps_path.read_bytes(), "gap_register.json")
-    if evidence_path.exists():
-        cols[2].download_button("evidence.csv", evidence_path.read_bytes(), "evidence.csv")
+    scores_json = json.dumps(data["scores"].to_dict(), indent=2, ensure_ascii=False)
+    gaps_json = json.dumps([asdict(g) for g in data["gaps"]], indent=2, ensure_ascii=False)
+    buf = io.StringIO()
+    pd.DataFrame([asdict(r) for rows in data["evidence"].values() for r in rows]).to_csv(
+        buf, index=False)
+    cols[0].download_button("ghat_scores.json", scores_json.encode("utf-8"), "ghat_scores.json")
+    cols[1].download_button("gap_register.json", gaps_json.encode("utf-8"), "gap_register.json")
+    cols[2].download_button("evidence.csv", buf.getvalue().encode("utf-8"), "evidence.csv")
     method = repo_path("docs/METHOD.md")
     st.markdown(method.read_text(encoding="utf-8") if method.exists() else "METHOD.md missing")
 
@@ -241,14 +251,14 @@ def main() -> None:
     st.title("Visarjan Ghat Watch")
     html(f'<div class="vgw-banner">{BANNER}</div>')
     data = load_all()
-    ranking, gaps, method = st.tabs(["Ranked ghats", "Gaps & caveats", "Method & data"])
+    ranking, brief, gaps = st.tabs(["Ranked ghats", "Brief (EN / हिन्दी)", "Gaps & method"])
     with ranking:
         ranked_list(data)
-        st.divider()
-        detail(data)
+    with brief:
+        brief_tab(data)
     with gaps:
         gaps_tab(data)
-    with method:
+        st.divider()
         method_tab(data)
     st.caption("Readings compared with CPCB class B limits only; no health conclusions. "
                "Persona inferred from the problem statement, not from interviews.")

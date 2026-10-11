@@ -396,7 +396,7 @@ def score_ghat(g: pd.DataFrame, ctx: dict[str, Any]) -> GhatScore | BlindSpot:
     near, nearest = near_boundary(risk, rules)
     on_list = name in ctx["designated_sites"]
     parts = reason_parts(g, _top_baseline(details), pairs, unpaired,
-                         critical.count if critical else 0, limits)
+                         critical.readings if critical else [], limits)
     poor = base["score"] is not None and base["score"] >= rules["scoring"]["driver"]["baseline"]
     label = driver_for(base["score"], worse, tier, rules)
     uncertain, note = site_match(g)

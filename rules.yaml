@@ -139,3 +139,9 @@ reports:
 pages_cache_dir: data/derived/pages
 evidence_csv: data/derived/evidence.csv
 gap_register_json: data/derived/gap_register.json
+
+# Forwardable brief (Level 5).
+brief:
+  date_en: 20 Oct 2026
+  date_hi: 20 अक्टूबर 2026
+  top_n: 3

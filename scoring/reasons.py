@@ -74,20 +74,32 @@ def unpaired_sentence(unpaired: list[dict[str, Any]], examples: int = 2) -> str 
 
 def reason_parts(
     g: pd.DataFrame, baseline_parameter: str | None, pairs: list[dict[str, Any]],
-    unpaired: list[dict[str, Any]], critical_count: int, limits: dict[str, Limit],
+    unpaired: list[dict[str, Any]], critical_readings: list[dict[str, Any]],
+    limits: dict[str, Limit],
 ) -> dict[str, str | None]:
-    """The reason sentences, by name: baseline, pair, unpaired, critical."""
+    """The reason sentences, by name: critical (first), baseline, pair, unpaired."""
     pair = worst_pair(pairs, limits)
     return {
+        "critical": critical_sentence(critical_readings),
         "baseline": baseline_sentence(g, baseline_parameter, limits[baseline_parameter])
         if baseline_parameter else None,
         "pair": pair_sentence(pair, limits[pair["parameter"]]) if pair else
         "No matched reading got worse during immersion." if pairs else
         "No table has both pre- and during-immersion readings to compare.",
         "unpaired": unpaired_sentence(unpaired),
-        "critical": f"Reported 0 mg/l dissolved oxygen {critical_count} time(s) "
-                    "(team's own flag, not a CPCB limit)." if critical_count else None,
     }
+
+
+def critical_sentence(readings: list[dict[str, Any]]) -> str | None:
+    """'Reported 0 mg/l dissolved oxygen 4 time(s) (Report 2023 p.26/60; ...)'."""
+    if not readings:
+        return None
+    by_year: dict[str, list[str]] = {}
+    for r in readings:
+        by_year.setdefault(str(r["year"]), []).append(str(r["source_page"]))
+    pages = "; ".join(_pages(y, *ps) for y, ps in sorted(by_year.items()))
+    return (f"Reported 0 mg/l dissolved oxygen {len(readings)} time(s) ({pages}); "
+            "team's own flag, not a CPCB limit.")
 
 
 def reason_text(parts: dict[str, str | None]) -> str:
@@ -99,4 +111,5 @@ def reason_text(parts: dict[str, str | None]) -> str:
 def short_reason(parts: dict[str, str | None], worsens: bool | None, poor: bool) -> str:
     """One sentence for the ranked list: the one that matches the driver label."""
     order = ["pair", "baseline"] if worsens and not poor else ["baseline", "pair"]
+    order = ["critical", *order]
     return next((parts[k] for k in order if parts[k]), reason_text(parts))

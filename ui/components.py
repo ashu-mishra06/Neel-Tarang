@@ -57,7 +57,7 @@ def ghat_row(s: Any) -> str:
     lowconf = " lowconf" if s.confidence.level == "Low" else ""
     chips = [tier_badge(s.tier), f'<span class="vgw-chip">Driver: {E(s.driver)}</span>',
              confidence_chip(s.confidence.level, s.confidence.coverage),
-             f'<span class="vgw-chip">Risk score {s.risk_score:.1f} / 100</span>']
+             f'<span class="vgw-chip">Risk score {s.risk_score:.1f}</span>']
     return (f'<div class="vgw-row{lowconf}"><div class="vgw-rank">{s.rank}</div><div>'
             f'<div class="vgw-title">{E(s.ghat)}<span class="vgw-wb">{E(s.water_body)}</span>'
             f'</div><div class="vgw-chips">{"".join(chips)}</div>'

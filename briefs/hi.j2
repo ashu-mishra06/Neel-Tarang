@@ -1,0 +1,31 @@
+{# NEEDS HUMAN REVIEW: every line below is a Claude draft until N1 signs off in briefs/hi_review_status.md #}
+[मसौदा - मानव समीक्षा आवश्यक / Draft - needs human review]
+विसर्जन घाट वॉच: दुर्गा विसर्जन, {{ date_hi }} के लिए सारांश
+किसके लिए: BMC विसर्जन योजना अधिकारी। मानक: CPCB श्रेणी B (बाहरी स्नान)। आँकड़े: MPPCB रिपोर्ट 2023-2025।
+
+जिन घाटों पर रीडिंग सबसे अधिक चिंता दिखाती हैं (आँकड़ों वाले {{ n_ghats }} घाटों में आपसी तुलना, सुरक्षा प्रमाणपत्र नहीं; श्रेणी रेखाएँ: मध्यम {{ tiers.medium }}, उच्च {{ tiers.high }}):
+{% for g in top %}
+{{ loop.index }}. {{ g.name }}: {{ hi.tier[g.tier] }} श्रेणी। {{ hi.driver[g.driver] }}।
+{% set f = g.fact %}
+{% if f.kind == "critical" %}
+   घुलित ऑक्सीजन (DO) {{ f.count }} बार 0 mg/l दर्ज ({% for s in f.sources %}रिपोर्ट {{ s.year }} पृ.{{ s.pages }}{% if not loop.last %}; {% endif %}{% endfor %})।
+{% elif f.kind == "pair" %}
+   विसर्जन के दौरान {{ hi.parameter[f.parameter] }} {{ f.pre }} से {{ hi.direction[f.direction] }} {{ f.during }} {{ f.unit }} हुआ ({{ hi.festival[f.festival] }} {{ f.year }}, रिपोर्ट {{ f.year }} पृ.{{ f.page }})।
+{% else %}
+   विसर्जन से पहले की {{ f.valid }} में से {{ f.breaches }} रीडिंग में {{ hi.parameter[f.parameter] }} सीमा से बाहर।
+{% endif %}
+   आँकड़ों पर भरोसा: {{ hi.confidence[g.confidence] }}।
+{% endfor %}
+
+पहले कहाँ जाँचें: रीडिंग सुझाव देती हैं कि इन घाटों पर {{ date_hi }} से पहले DO, BOD और pH की जाँच हो, और विसर्जन के दिन भी।
+
+जहाँ आँकड़े नहीं हैं:
+{% for name in no_baseline %}
+- {{ name }}: 2026 की सूची में, पर पिछली कोई रीडिंग नहीं; कोई भी जाँच नई जानकारी होगी।
+{% endfor %}
+{% for m in missing_tables %}
+- {{ m.ghat }}: {{ hi.festival[m.table.split(' ')[0]] }} {{ m.table.split(' ')[1] }} की तालिका नहीं।
+{% endfor %}
+
+सावधानियाँ: इकाइयाँ मानी गई हैं (रिपोर्ट में नहीं छपीं); केवल 4 धातुओं की जाँच, किसी की श्रेणी B सीमा नहीं; पिछली रीडिंग झील किनारे के घाटों की, 2026 में कुंड; तुलना केवल सीमाओं से, स्वास्थ्य पर कोई निष्कर्ष नहीं।
+हर संख्या का रिपोर्ट पृष्ठ: विसर्जन घाट वॉच ऐप।

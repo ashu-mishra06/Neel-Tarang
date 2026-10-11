@@ -45,8 +45,9 @@ def test_app_runs_and_shows_core_content() -> None:
 
     at = AppTest.from_file(str(repo_path("app.py")), default_timeout=120).run()
     assert not at.exception
-    text = " ".join(m.value for m in at.markdown)
+    text = " ".join([m.value for m in at.markdown] + [c.value for c in at.caption])
     for needle in ("Durga visarjan: 20 Oct 2026 | Standard: CPCB class B", "No baseline",
-                   "Arch Bridge", "Near tier line", "Site may be two places", "not sampled"):
+                   "Arch Bridge", "Near tier line", "Site may be two places", "not sampled",
+                   "not a safety certification"):
         assert needle in text, needle
     assert len(at.tabs) == 3
