@@ -17,7 +17,7 @@ import pandas as pd
 import streamlit as st
 
 from scoring.brief import build_briefs
-from scoring.config import load_rules, repo_path
+from scoring.config import RULES_PATH, load_rules, repo_path
 from scoring.engine import score_all
 from scoring.evidence import evidence_for_frame, render_page_image
 from scoring.gaps import build_gap_register
@@ -30,8 +30,8 @@ BANNER = "Durga visarjan: 20 Oct 2026 | Standard: CPCB class B | Data: MPPCB 202
 
 
 @st.cache_resource(show_spinner="Scoring ghats from the MPPCB readings...")
-def load_all() -> dict[str, Any]:
-    """Run the engine once per session: scores, evidence, gaps."""
+def load_all(rules_mtime_ns: int) -> dict[str, Any]:
+    """Run the engine once; re-run when rules.yaml changes (cache key = its mtime)."""
     rules = load_rules()
     limits = load_limits(rules=rules)
     df = load_readings(rules=rules)
@@ -201,8 +201,8 @@ def ghat_detail(s: Any, data: dict[str, Any]) -> None:
 
 
 def brief_tab(data: dict[str, Any]) -> None:
-    lang = st.radio("Language", ["English", "हिन्दी (draft - needs human review)"],
-                    horizontal=True, key="brief_lang")
+    lang = st.radio("Language / भाषा", ["हिन्दी (draft - needs human review)", "English"],
+                    index=0, horizontal=True, key="brief_lang")
     code = "en" if lang == "English" else "hi"
     brief = data["briefs"][code]
     if code == "hi":
@@ -250,8 +250,8 @@ def main() -> None:
     html(css())
     st.title("Visarjan Ghat Watch")
     html(f'<div class="vgw-banner">{BANNER}</div>')
-    data = load_all()
-    ranking, brief, gaps = st.tabs(["Ranked ghats", "Brief (EN / हिन्दी)", "Gaps & method"])
+    data = load_all(RULES_PATH.stat().st_mtime_ns)
+    ranking, brief, gaps = st.tabs(["Ranked ghats", "Brief (हिन्दी / EN)", "Gaps & method"])
     with ranking:
         ranked_list(data)
     with brief:

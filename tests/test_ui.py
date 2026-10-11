@@ -51,3 +51,26 @@ def test_app_runs_and_shows_core_content() -> None:
                    "not a safety certification"):
         assert needle in text, needle
     assert len(at.tabs) == 3
+
+
+@pytest.mark.skipif(not repo_path(load_rules()["data"]["readings_csv"]).exists(),
+                    reason="organisers' CSV not present")
+def test_brief_defaults_to_hindi() -> None:
+    from streamlit.testing.v1 import AppTest
+
+    at = AppTest.from_file(str(repo_path("app.py")), default_timeout=120).run()
+    assert at.radio(key="brief_lang").value.startswith("हिन्दी")
+    assert "घुलित ऑक्सीजन" in at.code[0].value
+
+
+def test_rules_reload_when_file_changes(tmp_path) -> None:
+    import os
+    import time
+
+    f = tmp_path / "r.yaml"
+    f.write_text("a: 1\n", encoding="utf-8")
+    assert load_rules(f)["a"] == 1
+    f.write_text("a: 2\n", encoding="utf-8")
+    later = time.time() + 5
+    os.utime(f, (later, later))
+    assert load_rules(f)["a"] == 2
