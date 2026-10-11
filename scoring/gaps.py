@@ -160,7 +160,7 @@ def fixed_caveats(rules: dict[str, Any]) -> list[Gap]:
             "and Lower Lake. 2023-2025 readings may not describe the new set-ups.", [], []),
         Gap("designated_list_source", "caveat", "2026 list is from a press report",
             "The designated list is the Ganesh 2026 list reported by Free Press Journal "
-            "(22 Sep 2026; article URL still to be added). The Durga 2026 list may differ - "
+            "(22 Sep 2026; URL in data/context/designated_ghats_2026.csv). The Durga 2026 list may differ - "
             "verify with BMC.", [], []),
     ]
 

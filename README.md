@@ -94,7 +94,7 @@ immersion vs worse during immersion).
   `.gitattributes`). Source PDFs are in `resources/`. Links are in
   `data/DATA_DICTIONARY.md`.
 - `data/context/designated_ghats_2026.csv`: the Ganesh 2026 designated ghats
-  as reported by Free Press Journal on 22 Sep 2026 (_TODO: add article URL_).
+  as reported by Free Press Journal on 22 Sep 2026: [BMC Deploys 174 Divers At Bhopal Ghats For Ganesh Idol Immersion](https://www.freepressjournal.in/bhopal/bmc-deploys-174-divers-at-bhopal-ghats-for-ganesh-idol-immersion).
   Context only. It is used for the "No baseline" section and the "not on the
   2026 list" label.
 - `data/mp_immersion_sites_2023_2025.csv` (statewide): **not used**. It was
