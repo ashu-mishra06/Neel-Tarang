@@ -237,3 +237,129 @@ def crumb(section: str) -> str:
 
 def card_title(text: str) -> str:
     return f'<div class="nt-card-title" role="heading" aria-level="2">{E(text)}</div>'
+
+
+# ---------- map spotlight and plain-language verdict (13 Oct 2026) ----------
+
+
+def spot_overview(scores: Any, lang: str) -> str:
+    """Spotlight card when the map shows every ghat."""
+    high = sum(s.tier == "High" for s in scores.ranked)
+    text = i18n.t("spot_overview_text", lang, n=len(scores.ranked), high=high,
+                  nobase=len(scores.blind_spots))
+    return (f'<div class="nt-spot"><div class="nt-spot-eyebrow">'
+            f'{E(i18n.t("spot_overview", lang))}</div><p class="nt-spot-text">{E(text)}</p>'
+            f'{_legend(lang)}</div>')
+
+
+def _legend(lang: str) -> str:
+    items = "".join(f"<li>{status(k, lang)}</li>" for k in ("High", "Medium", "Low", "NoData"))
+    return f'<ul class="nt-legend" aria-label="{E(i18n.t("col_tier", lang))}">{items}</ul>'
+
+
+def headline(s: Any, limits: dict[str, Any], lang: str) -> str:
+    """One plain sentence: what the readings suggest for this ghat."""
+    from scoring.explain import explain
+
+    return i18n.t(f"suggest_{explain(s, limits).action}", lang)
+
+
+def spot_card(heading: str, point: dict[str, Any], s: Any, limits: dict[str, Any], n: int,
+              lang: str) -> str:
+    """Spotlight for the ghat the map is showing: tier, score, one plain sentence."""
+    approx = (f' <span class="nt-spot-approx">({E(point["approx"])})</span>'
+              if point["approx"] else "")
+    top = (f'<div class="nt-spot-eyebrow">{E(heading)}</div>'
+           f'<div class="nt-spot-name">{E(point["ghat"])}{approx}</div>')
+    if s is None:
+        return (f'<div class="nt-spot">{top}<div class="nt-spot-meta">'
+                f'{tier_badge("NoData", lang)}</div><p class="nt-spot-text">'
+                f'{E(i18n.t("no_baseline_text", lang))}</p></div>')
+    meta = (f'{tier_badge(s.tier, lang)}{SEP}{E(i18n.t("spot_rank", lang, rank=s.rank, n=n))}'
+            f'{SEP}{E(i18n.t("confidence", lang))}: {E(i18n.confidence(s.confidence.level, lang))}')
+    return (f'<div class="nt-spot">{top}<div class="nt-spot-meta">{meta}</div>'
+            f'<div class="nt-spot-score"><span class="n">{s.risk_score:.1f}</span> '
+            f'<span class="l">{E(i18n.t("risk_of", lang))}</span></div>'
+            f'<p class="nt-spot-text">{E(headline(s, limits, lang))}</p></div>')
+
+
+def _answer(state: str, word: str) -> str:
+    """Answer chip: text always present; the class only adds a quiet colour."""
+    return f'<span class="nt-answer {E(state)}">{E(word)}</span>'
+
+
+def _question(title: str, answer_html: str, fact: str, note: str) -> str:
+    fact_html = f'<p class="nt-q-fact">{E(fact)}</p>' if fact else ""
+    note_html = f'<p class="nt-q-note">{E(note)}</p>' if note else ""
+    return (f'<div class="nt-q"><div class="nt-q-title">{E(title)}</div>{answer_html}'
+            f'{fact_html}{note_html}</div>')
+
+
+def _before_block(e: Any, lang: str) -> str:
+    t = lambda key, **kw: i18n.t(key, lang, **kw)  # noqa: E731
+    fact = (t("before_fact", param=i18n.parameter(e.before_parameter, lang),
+              limit=i18n.limit_words(e.before_limit, lang), x=e.before_breaches,
+              y=e.before_valid) if e.before_valid else "")
+    note = {"poor": t("before_poor_note", b=e.baseline, cut=e.baseline_cutoff),
+            "mild": t("before_mild_note", b=e.baseline, cut=e.baseline_cutoff)}.get(
+        e.before_state, "")
+    state = {"poor": "bad", "mild": "some", "ok": "good"}[e.before_state]
+    return _question(t("q_before"), _answer(state, t(f"a_before_{e.before_state}")), fact, note)
+
+
+def _during_block(e: Any, lang: str) -> str:
+    t = lambda key, **kw: i18n.t(key, lang, **kw)  # noqa: E731
+    fact = ""
+    if e.pair and e.during_state in ("yes", "some"):
+        p = e.pair
+        fact = t("during_fact", param=i18n.parameter(p["parameter"], lang), pre=p["pre"],
+                 during=p["during"], unit=p["unit"], festival=i18n.festival(p["festival"], lang),
+                 year=p["year"], source=p["source"])
+    state = {"yes": "bad", "some": "some", "no": "good", "unknown": "unknown"}[e.during_state]
+    return _question(t("q_during"), _answer(state, t(f"a_during_{e.during_state}")), fact,
+                     t(f"during_{e.during_state}_note"))
+
+
+def _sure_block(e: Any, lang: str) -> str:
+    t = lambda key, **kw: i18n.t(key, lang, **kw)  # noqa: E731
+    notes = []
+    if e.missing_tables:
+        tables = ", ".join(" ".join(i18n.festival(w, lang) for w in m.split())
+                           for m in e.missing_tables)
+        notes.append(t("sure_tables", tables=tables))
+    if e.not_sampled:
+        notes.append(t("sure_cells", n=e.not_sampled))
+    if e.unpaired:
+        notes.append(t("sure_unpaired", n=e.unpaired))
+    if e.site_uncertain:
+        notes.append(t("sure_site"))
+    state = {"High": "good", "Medium": "some", "Low": "bad"}.get(e.confidence, "unknown")
+    return _question(t("q_sure"), _answer(state, i18n.confidence(e.confidence, lang)),
+                     t("sure_fact", have=e.coverage_pct),
+                     " · ".join(notes) if notes else t("sure_all"))
+
+
+def verdict(s: Any, limits: dict[str, Any], lang: str,
+            rules_by_param: dict[str, str] | None = None) -> str:
+    """Detail header: ghat, tier, score, then three plain questions and a suggestion."""
+    from scoring.explain import explain
+
+    e = explain(s, limits)
+    t = lambda key, **kw: i18n.t(key, lang, **kw)  # noqa: E731
+    zero = (f'<p class="nt-callout">{E(t("zero_do_note", n=e.critical_count))}</p>'
+            if e.critical_count else "")
+    head = (f'<div class="nt-v-head"><div><div class="nt-v-name">{s.rank}. {E(s.ghat)}</div>'
+            f'<div class="nt-meta">{E(s.water_body)}{SEP}{tier_badge(s.tier, lang)}{SEP}'
+            f'{E(i18n.driver(s.driver, lang))}</div></div>'
+            f'<div class="nt-score" title="{E(t("help_risk"))}"><div class="n">'
+            f'{s.risk_score:.1f}</div><div class="l">{E(t("risk_of"))}</div></div></div>')
+    grid = (f'<div class="nt-qs">{_before_block(e, lang)}{_during_block(e, lang)}'
+            f'{_sure_block(e, lang)}</div>')
+    suggest = (f'<div class="nt-suggest"><div class="nt-q-title">{E(t("suggest_title"))}</div>'
+               f'<p>{E(t(f"suggest_{e.action}"))}</p></div>')
+    shown = (t("zero_do"), t("not_comparable"))  # already said above
+    flags = [persistence_text(s, rules_by_param or {}, lang)]
+    flags += [E(n) for n in flag_texts(s, lang) if not any(x in n for x in shown)]
+    flags = [f for f in flags if f]
+    flags_html = f'<div class="nt-flags">{" · ".join(flags)}</div>' if flags else ""
+    return f'<div class="nt-verdict">{head}{zero}{grid}{suggest}{flags_html}</div>'

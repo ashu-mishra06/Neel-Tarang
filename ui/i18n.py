@@ -267,3 +267,135 @@ def persistence_badge(r: dict[str, Any], rule: str, lang: str) -> str:
     return (f"{PERSIST_HI.get(r['label'], r['label'])}: विसर्जन {phase} "
             f"{parameter(r['parameter'], 'hi')} {r['valid_tables']} में से {r['breaches']} "
             f"तालिकाओं में सीमा से {word} ({r['missing_tables']} में नमूना नहीं)")
+
+
+# ---------- map and plain-language detail (13 Oct 2026; Hindi is a draft) ----------
+
+TEXT.update({
+    "map_title": {"en": "Where the ghats are", "hi": "घाट कहाँ हैं"},
+    "map_caption": {
+        "en": "Column height = risk score. Colour and the label give the tier. Grey ring = no "
+              "past readings. Click a ghat to see why it ranks where it does.",
+        "hi": "स्तंभ की ऊँचाई = जोखिम अंक। रंग और लेबल श्रेणी बताते हैं। धूसर घेरा = कोई पिछली "
+              "रीडिंग नहीं। कोई घाट क्यों इस स्थान पर है, देखने के लिए उस पर क्लिक करें।"},
+    "map_tour": {"en": "Auto-tour the ghats", "hi": "घाटों का स्वचालित भ्रमण"},
+    "map_tour_help": {"en": "Flies from ghat to ghat in rank order. Turn off to explore freely.",
+                      "hi": "क्रम के अनुसार एक घाट से दूसरे पर जाता है। खुद देखने के लिए बंद करें।"},
+    "map_all": {"en": "Show all ghats", "hi": "सभी घाट दिखाएँ"},
+    "map_approx": {
+        "en": "{n} of {total} positions are approximate (not surveyed); sources in "
+              "data/context/ghat_locations.csv. The base map needs internet; pins and details "
+              "work offline.",
+        "hi": "{total} में से {n} स्थान अनुमानित हैं (सर्वेक्षण नहीं); स्रोत "
+              "data/context/ghat_locations.csv में। आधार नक्शे के लिए इंटरनेट चाहिए; पिन और "
+              "विवरण बिना इंटरनेट भी चलते हैं।"},
+    "map_unplaced": {"en": "Not on the map (no location on file): {names}",
+                     "hi": "नक्शे पर नहीं (स्थान दर्ज नहीं): {names}"},
+    "spot_overview": {"en": "All ghats at a glance", "hi": "सभी घाट एक नज़र में"},
+    "spot_overview_text": {
+        "en": "{n} ghats ranked from past readings; {high} in the High tier. {nobase} designated "
+              "ghat(s) have no past readings. Click any ghat on the map.",
+        "hi": "पिछली रीडिंग से {n} घाट क्रमित; {high} उच्च श्रेणी में। {nobase} घोषित घाट की कोई "
+              "पिछली रीडिंग नहीं। नक्शे पर किसी भी घाट पर क्लिक करें।"},
+    "spot_now": {"en": "On the map now", "hi": "अभी नक्शे पर"},
+    "spot_picked": {"en": "You selected", "hi": "आपने चुना"},
+    "spot_rank": {"en": "Rank {rank} of {n}", "hi": "{n} में क्रम {rank}"},
+    "open_details": {"en": "Open details", "hi": "विवरण खोलें"},
+    "approx_pos": {"en": "approximate position", "hi": "अनुमानित स्थान"},
+    "risk_of": {"en": "risk score (0-100)", "hi": "जोखिम अंक (0-100)"},
+    # the three questions
+    "q_before": {"en": "Already poor before immersion?", "hi": "विसर्जन से पहले ही खराब?"},
+    "q_during": {"en": "Worse during immersion?", "hi": "विसर्जन के दौरान और खराब?"},
+    "q_sure": {"en": "How sure are we?", "hi": "हम कितने निश्चित हैं?"},
+    "a_before_poor": {"en": "Yes", "hi": "हाँ"},
+    "a_before_mild": {"en": "Some breaches", "hi": "कुछ उल्लंघन"},
+    "a_before_ok": {"en": "No", "hi": "नहीं"},
+    "a_during_yes": {"en": "Yes", "hi": "हाँ"},
+    "a_during_some": {"en": "Sometimes", "hi": "कभी-कभी"},
+    "a_during_no": {"en": "No", "hi": "नहीं"},
+    "a_during_unknown": {"en": "Can't tell", "hi": "कहा नहीं जा सकता"},
+    "before_fact": {
+        "en": "{param} outside its limit ({limit}) in {x} of {y} readings taken before immersion.",
+        "hi": "विसर्जन से पहले ली गई {y} में से {x} रीडिंग में {param} सीमा ({limit}) से बाहर।"},
+    "before_poor_note": {
+        "en": "Large enough to pass the baseline cut-off ({b} vs {cut}).",
+        "hi": "आधार सीमा-रेखा पार करने लायक ({b}, रेखा {cut})।"},
+    "before_mild_note": {
+        "en": "Mostly small margins: below the baseline cut-off ({b} vs {cut}).",
+        "hi": "अधिकतर थोड़े अंतर से: आधार सीमा-रेखा से नीचे ({b}, रेखा {cut})।"},
+    "during_fact": {
+        "en": "Biggest change in one table: {param} {pre} → {during} {unit} ({festival} {year}, "
+              "{source}).",
+        "hi": "एक तालिका में सबसे बड़ा बदलाव: {param} {pre} → {during} {unit} ({festival} {year}, "
+              "{source})।"},
+    "during_yes_note": {"en": "Consistent across matched tables (same table, before and during).",
+                        "hi": "मिलान की गई तालिकाओं (एक ही तालिका, पहले और दौरान) में लगातार।"},
+    "during_some_note": {
+        "en": "Not consistent across tables: on average less than 1 mg/l worse, and no "
+              "average crosses a limit.",
+        "hi": "तालिकाओं में लगातार नहीं: औसतन 1 mg/l से कम बिगड़ा, और कोई औसत सीमा पार नहीं करता।"},
+    "during_unknown_note": {"en": "No table has both a before and a during reading.",
+                            "hi": "किसी तालिका में पहले और दौरान दोनों रीडिंग नहीं।"},
+    "during_no_note": {"en": "No matched table got worse.",
+                       "hi": "मिलान की गई किसी तालिका में स्थिति नहीं बिगड़ी।"},
+    "sure_fact": {"en": "{have} of expected readings are on file.",
+                  "hi": "अपेक्षित रीडिंग में से {have} उपलब्ध।"},
+    "sure_tables": {"en": "No table for {tables}", "hi": "{tables} की तालिका नहीं"},
+    "sure_cells": {"en": "{n} reading(s) not sampled", "hi": "{n} रीडिंग का नमूना नहीं"},
+    "sure_unpaired": {"en": "{n} breach(es) with nothing to compare against",
+                      "hi": "{n} उल्लंघन जिनकी तुलना नहीं हो सकती"},
+    "sure_site": {"en": "Name may cover two places", "hi": "नाम दो जगहों का हो सकता है"},
+    "sure_all": {"en": "Nothing missing", "hi": "कुछ भी गायब नहीं"},
+    "suggest_title": {"en": "What the readings suggest", "hi": "रीडिंग क्या सुझाती हैं"},
+    "suggest_both": {
+        "en": "Water is poor even before immersion and gets worse during it: readings suggest "
+              "attention to the kund/lake itself and checks on the day.",
+        "hi": "पानी विसर्जन से पहले ही खराब है और दौरान और बिगड़ता है: रीडिंग कुंड/झील पर ध्यान "
+              "और विसर्जन के दिन जाँच का सुझाव देती हैं।"},
+    "suggest_baseline": {
+        "en": "The problem is there before immersion: readings suggest attention to the "
+              "kund/lake itself, not only on the day.",
+        "hi": "समस्या विसर्जन से पहले से है: रीडिंग केवल विसर्जन के दिन नहीं, कुंड/झील पर ध्यान "
+              "का सुझाव देती हैं।"},
+    "suggest_festival": {
+        "en": "Water gets clearly worse during immersion: readings suggest aeration, cleaning "
+              "and testing on the day.",
+        "hi": "विसर्जन के दौरान पानी साफ़ तौर पर बिगड़ता है: रीडिंग विसर्जन के दिन वायु-संचार, "
+              "सफ़ाई और जाँच का सुझाव देती हैं।"},
+    "suggest_watch": {
+        "en": "No single big problem, but several readings breach limits: readings suggest "
+              "routine testing before and on the day.",
+        "hi": "कोई एक बड़ी समस्या नहीं, पर कई रीडिंग सीमा से बाहर: रीडिंग पहले और विसर्जन के दिन "
+              "नियमित जाँच का सुझाव देती हैं।"},
+    "zero_do_note": {
+        "en": "Dissolved oxygen was reported as 0 mg/l {n} time(s). This is the team's own flag "
+              "(not a CPCB limit); it keeps the ghat in the High tier.",
+        "hi": "घुलित ऑक्सीजन {n} बार 0 mg/l दर्ज। यह टीम का अपना संकेत है (CPCB सीमा नहीं); इससे "
+              "घाट उच्च श्रेणी में रहता है।"},
+    "tab_story": {"en": "Before vs during", "hi": "पहले बनाम दौरान"},
+    "tab_sources": {"en": "Report pages", "hi": "रिपोर्ट पृष्ठ"},
+    "tab_numbers": {"en": "All numbers (for analysts)", "hi": "सभी आँकड़े (विश्लेषकों के लिए)"},
+    "tab_gaps": {"en": "Gaps for this ghat", "hi": "इस घाट की कमियाँ"},
+    "show_images": {"en": "Show report page images (slower)",
+                    "hi": "रिपोर्ट पृष्ठ की छवियाँ दिखाएँ (धीमा)"},
+    "scope_scored": {"en": "pH, DO, BOD (scored)", "hi": "pH, DO, BOD (अंक वाले)"},
+    "scope_all": {"en": "All parameters", "hi": "सभी माप"},
+    "show": {"en": "Show", "hi": "दिखाएँ"},
+    "help_risk": {
+        "en": "0-100. Half from how poor the water was before immersion, half from how much "
+              "worse it got during immersion. Higher = more concern.",
+        "hi": "0-100। आधा इस से कि विसर्जन से पहले पानी कितना खराब था, आधा इस से कि दौरान कितना "
+              "बिगड़ा। अधिक = अधिक चिंता।"},
+})
+
+
+def limit_words(text: str, lang: str) -> str:
+    """'at most 3 mg/l' -> 'अधिकतम 3 mg/l' (numbers unchanged)."""
+    if lang != "hi":
+        return text
+    return (text.replace("at least", "कम से कम").replace("at most", "अधिकतम")
+            .replace(" to ", " से "))
+
+
+def festival(name: str, lang: str) -> str:
+    return BRIEF_HI["festival"].get(name, name) if lang == "hi" else name

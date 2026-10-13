@@ -231,6 +231,15 @@ streamlit run app.py
 - **2026 ghat lists** (`data/context/designated_ghats_2026.csv`):
   - Free Press Journal, 22 Sep 2026: [BMC Deploys 174 Divers At Bhopal Ghats For Ganesh Idol Immersion](https://www.freepressjournal.in/bhopal/bmc-deploys-174-divers-at-bhopal-ghats-for-ganesh-idol-immersion) (designated list).
   - Free Press Journal, 24 Sep 2026: [Nearly 30 Ganpati Collection Stalls Set Up...](https://www.freepressjournal.in/bhopal/bhopal-ganesh-visarjan-2026-nearly-30-ganpati-collection-stalls-set-up-180-divers-deployed-khatlapura-ghat-prempura-ghat-ready-ahead-of-anant-chaturdashi) (adds Shahpura and Rani Kamlapati as in use).
+- **Ghat map positions** (`data/context/ghat_locations.csv`, one source per row):
+  OpenStreetMap / Nominatim for Prempura ghat (mapped point), Shahpura Lake,
+  Bairagarh and Malikheri (lake or locality centres);
+  [ifoundbutterflies.org](https://www.ifoundbutterflies.org/hatai-kheda-lake-bhopal-district-madhya-pradesh-india)
+  for Hatai Kheda lake. Khatlapura, Rani Kamlapati / Kamla Park and Arch Bridge
+  are **team estimates** on the Lower Lake shore and are labelled "approximate
+  position" on the map. Base map tiles: CARTO / OpenStreetMap (needs internet;
+  pins and details work offline). The map shows positions only; it never changes
+  the ranking.
 - The statewide file `mp_immersion_sites_2023_2025.csv` is **not used**. It was
   planned only as a less-checked context benchmark, which was cut.
 
@@ -238,7 +247,7 @@ streamlit run app.py
 
 **What works:** scoring, evidence links (all 1,476 printed values were found on
 their cited PDF pages), gap register, Hindi/English interface, brief, test
-planner, persistence badge, re-scoring with uploaded readings, 254 passing tests.
+planner, persistence badge, re-scoring with uploaded readings, ghat map with auto-tour and click-to-open details, 266 passing tests.
 
 **What to keep in mind:**
 - **Units are assumed.** The reports print none.
@@ -253,9 +262,11 @@ planner, persistence badge, re-scoring with uploaded readings, 254 passing tests
 - **Not done yet:** a human check of 10 evidence rows (listed in `docs/METHOD.md`),
   and a usability test with a non-technical user.
 - The user persona comes from the problem statement, **not from interviews**.
+- **Map positions are not surveyed.** 7 of 8 are a lake/locality centre or a team
+  estimate; confirm exact ghat locations with BMC before using the map for routing.
 
 **Not included (cut for time):** share card image (7C), statewide benchmark (7D),
-lake cross-check, map view, "ask the data" box, PDF export of the brief.
+lake cross-check, "ask the data" box, PDF export of the brief.
 
 ---
 

@@ -15,6 +15,7 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from scoring.brief import build_briefs, fact_sentence, key_fact
 from scoring.config import RULES_PATH, load_rules, repo_path
@@ -25,7 +26,7 @@ from scoring.limits import evaluate_frame, load_limits
 from scoring.loader import load_readings
 from scoring.reasons import cite
 from scoring.rescore import rescore, validate_upload
-from ui import charts, i18n
+from ui import charts, ghat_map, i18n
 from ui import components as ui
 from ui.planner_panel import planner_panel
 from ui.theme import css
@@ -118,13 +119,6 @@ def overview_chart(data: dict[str, Any], lang: str) -> None:
     st.caption(i18n.t("chart_caption", lang))
 
 
-def summary_card(data: dict[str, Any], lang: str) -> None:
-    html(ui.card_title(i18n.t("summary", lang)))
-    top = data["scores"].ranked[:3]
-    html(ui.summary_list([(s.ghat, ui.status(s.tier, lang), f"{s.risk_score:.1f}") for s in top]))
-    st.caption(i18n.t("risk", lang))
-
-
 def row_reason(s: Any, data: dict[str, Any], lang: str) -> str:
     """English: the engine's one-line reason. Hindi: the reviewed brief sentence."""
     if lang == "en":
@@ -151,10 +145,24 @@ def ranked_list(data: dict[str, Any], lang: str) -> None:
     with st.container(border=True, key="card-detail"):
         html(ui.card_title(i18n.t("details_card", lang)))
         names = [s.ghat for s in scores.ranked]
-        name = st.selectbox(i18n.t("choose_ghat", lang), names, key="detail_ghat")
+        picked = st.session_state.pop(ghat_map.PICK_KEY, None)
+        if picked in names:
+            st.session_state["detail_ghat"] = picked
+            scroll_to("card-detail")
+        if st.session_state.get("detail_ghat") not in names:
+            st.session_state.pop("detail_ghat", None)
+        name = st.selectbox(i18n.t("choose_ghat", lang), names, key="detail_ghat",
+                            on_change=lambda: ghat_map.follow_detail(
+                                st.session_state["detail_ghat"]))
         s = next(x for x in scores.ranked if x.ghat == name)
-        html(ui.ghat_row(s, lang, row_reason(s, data, lang), rules_by_param))
         ghat_detail(s, data, lang)
+
+
+def scroll_to(card_key: str) -> None:
+    """Smooth-scroll the page to a keyed card (after a ghat is picked on the map)."""
+    components.html(
+        "<script>const el = window.parent.document.querySelector('.st-key-" + card_key + "');"
+        "if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});</script>", height=0)
 
 
 def gaps_card(data: dict[str, Any], lang: str, gaps_page: Any) -> None:
@@ -250,55 +258,67 @@ def pairs_charts(s: Any, data: dict[str, Any], lang: str) -> None:
 
 
 def ghat_detail(s: Any, data: dict[str, Any], lang: str = "en") -> None:
-    """Detail for one ranked ghat (inside its expander), split into four tabs."""
+    """Detail for one ranked ghat: a plain verdict first, then tabs for the evidence.
+
+    Order follows the officer's questions: why is it ranked here (verdict), show me
+    the change (chart), show me the source (report pages), what is missing (gaps).
+    The full technical tables sit last, for analysts.
+    """
     rules, key = data["rules"], f"g{s.rank}"
-    if s.site_match_uncertain:
-        st.warning(s.site_match_note)
-    cols = st.columns(3)
-    cols[0].metric(i18n.t("risk", lang), f"{s.risk_score:.1f}")
-    cols[1].metric(i18n.t("part_baseline", lang), fmt(s.baseline, 3))
-    cols[2].metric(i18n.t("part_festival", lang), fmt(s.festival, 3))
-    chart_tab, numbers_tab, pages_tab, gaps_tab_ = st.tabs([
-        i18n.t("d_chart", lang), i18n.t("d_numbers", lang),
-        i18n.t("d_evidence", lang), i18n.t("d_gaps", lang)])
-    with chart_tab:
+    rules_by_param = {k: v.rule for k, v in data["limits"].items()}
+    html(ui.verdict(s, data["limits"], lang, rules_by_param))
+    story_tab, pages_tab, gaps_tab_, numbers_tab = st.tabs([
+        i18n.t("tab_story", lang), i18n.t("tab_sources", lang), i18n.t("tab_gaps", lang),
+        i18n.t("tab_numbers", lang)])
+    with story_tab:
         pairs_charts(s, data, lang)
-    with numbers_tab:
-        st.markdown(f"**{i18n.t('full_reason', lang)}:** {s.reason}")
-        st.markdown(driver_explanation(s))
-        st.dataframe(parameter_table(s), hide_index=True, width="stretch")
-        st.markdown("**Breaches per table (persistence)** - missing tables are listed, "
-                    "never counted as clean")
-        st.dataframe(pd.DataFrame(s.persistence).rename(columns={
-            "breaches": "breached (X)", "valid_tables": "tables with a reading (Y)",
-            "missing_tables": "not sampled (M)"}), hide_index=True, width="stretch")
-        if s.matched_pairs:
-            st.dataframe(pairs_table(s), hide_index=True, width="stretch")
-        if s.unpaired_breaches:
-            st.markdown("**Breaches that cannot be compared** (not in the score; lower confidence)")
-            for u in s.unpaired_breaches:
-                unit = f" {u['unit']}" if u["unit"] else ""
-                st.markdown(f"- {u['parameter']} {u['value']:g}{unit}, {u['festival']} "
-                            f"{u['year']} {u['phase']}, {cite(u['year'], u['source_page'])} - "
-                            f"{u['why']}")
-        if s.critical:
-            st.markdown(f"**{s.critical.note}**")
-            st.markdown("\n".join(f"- {r['festival']} {r['year']} {r['phase']}, "
-                                  f"{cite(r['year'], r['source_page'])}"
-                                  for r in s.critical.readings))
-        confidence_block(s)
     with pages_tab:
-        scope = st.radio("Show", ["Scored parameters (pH, DO, BOD)", "All parameters"],
-                         horizontal=True, key=f"scope_{key}")
-        show_images = st.toggle("Show report page images", value=s.rank == 1,
-                                key=f"img_{key}")
+        left, right = st.columns([3, 2], vertical_alignment="center")
+        scope = left.radio(i18n.t("show", lang),
+                           [i18n.t("scope_scored", lang), i18n.t("scope_all", lang)],
+                           horizontal=True, key=f"scope_{key}")
+        show_images = right.toggle(i18n.t("show_images", lang), value=False, key=f"img_{key}")
         rows = data["evidence"].get(s.ghat, [])
-        if scope.startswith("Scored"):
+        if scope == i18n.t("scope_scored", lang):
             rows = [r for r in rows if r.scored]
         evidence_section(rows, rules, show_images)
     with gaps_tab_:
         for g in [g for g in data["gaps"] if s.ghat in g.ghats]:
             html(ui.gap_card(g, lang))
+    with numbers_tab:
+        numbers_detail(s)
+
+
+def numbers_detail(s: Any) -> None:
+    """Every score component, for analysts and for anyone challenging a number."""
+    st.markdown(f"**Full reason:** {s.reason}")
+    cols = st.columns(3)
+    cols[0].metric("Risk score", f"{s.risk_score:.1f}")
+    cols[1].metric("Baseline part (0-1)", fmt(s.baseline, 3))
+    cols[2].metric("Festival part (0-1)", fmt(s.festival, 3))
+    st.markdown(driver_explanation(s))
+    st.dataframe(parameter_table(s), hide_index=True, width="stretch")
+    st.markdown("**Breaches per table (persistence)** - missing tables are listed, "
+                "never counted as clean")
+    st.dataframe(pd.DataFrame(s.persistence).rename(columns={
+        "breaches": "breached (X)", "valid_tables": "tables with a reading (Y)",
+        "missing_tables": "not sampled (M)"}), hide_index=True, width="stretch")
+    if s.matched_pairs:
+        st.markdown("**Matched pairs** (same table, before and during)")
+        st.dataframe(pairs_table(s), hide_index=True, width="stretch")
+    if s.unpaired_breaches:
+        st.markdown("**Breaches that cannot be compared** (not in the score; lower confidence)")
+        for u in s.unpaired_breaches:
+            unit = f" {u['unit']}" if u["unit"] else ""
+            st.markdown(f"- {u['parameter']} {u['value']:g}{unit}, {u['festival']} "
+                        f"{u['year']} {u['phase']}, {cite(u['year'], u['source_page'])} - "
+                        f"{u['why']}")
+    if s.critical:
+        st.markdown(f"**{s.critical.note}**")
+        st.markdown("\n".join(f"- {r['festival']} {r['year']} {r['phase']}, "
+                              f"{cite(r['year'], r['source_page'])}"
+                              for r in s.critical.readings))
+    confidence_block(s)
 
 
 def brief_tab(data: dict[str, Any], lang: str) -> None:
@@ -364,12 +384,11 @@ def page_ghats(data: dict[str, Any], state: dict[str, Any], lang: str,
     if state.get("changes"):
         st.info(i18n.t("in_use_banner", lang, label=state["label"]))
     kpis(data, lang)
-    left, right = st.columns([2.1, 1], gap="medium")
-    with left, st.container(border=True, key="card-chart"):
-        overview_chart(data, lang)
-    with right, st.container(border=True, key="card-summary"):
-        summary_card(data, lang)
+    with st.container(border=True, key="card-map"):
+        ghat_map.map_section(data, lang)
     ranked_list(data, lang)
+    with st.container(border=True, key="card-chart"):
+        overview_chart(data, lang)
     gaps_card(data, lang, pages["gaps"])
 
 

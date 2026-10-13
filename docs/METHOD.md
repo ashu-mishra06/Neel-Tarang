@@ -397,3 +397,36 @@ Two Free Press Journal reports, both about Ganesh 2026:
 These two ghats now read "Used for Ganesh 2026 per FPJ 24 Sep (not on the 22 Sep
 designated list); Durga list - confirm with BMC" (`list_status: in_use`),
 replacing "Not on reported 2026 list" (D4). Scores and ranking are unchanged.
+
+## Map and plain-language detail (13 Oct 2026)
+
+- **Map** (`ui/ghat_map.py`): one column per ranked ghat, height = risk score,
+  colour and a "rank. name" text label = tier (colour is never the only signal).
+  No-baseline ghats (Arch Bridge) are a grey ring with no column, score or tier.
+  The auto-tour visits the overview and then each ghat in rank order (one stop
+  every 5 s, derived from elapsed time); it can be switched off, and stops when a
+  ghat is clicked. Clicking a ghat opens its details below.
+- **Positions** come from `data/context/ghat_locations.csv`, with a `precision`
+  column: `mapped` (OSM point for the ghat: Prempura only), `water body` or
+  `locality` (centre of the lake or locality), `estimate` (team estimate on the
+  Lower Lake shore: Khatlapura, Rani Kamlapati / Kamla Park, Arch Bridge). Every
+  non-`mapped` point is labelled "approximate position" on the map. A ghat with no
+  row is listed under the map as "not on the map", never dropped silently.
+- **Detail view** now opens with three plain questions answered from engine
+  output only (`scoring/explain.py`; no new scoring):
+  1. *Already poor before immersion?* "Yes" if the baseline part passes its 0.40
+     cut-off; "Some breaches" if readings breached but the baseline stays below the
+     cut-off (for example Shahpura: BOD above limit in 6 of 6 pre readings, baseline
+     0.39); "No" if no pre reading breached.
+  2. *Worse during immersion?* "Yes" if the physical anchor is met; "Sometimes" if
+     at least one matched table got worse but the anchor is not met; "No" if none
+     got worse; "Can't tell" if there are no matched pairs. The quoted number is the
+     single matched pair that worsened most (same table, before and during), with its
+     report page.
+  3. *How sure are we?* The confidence level, coverage and the missing items.
+  A "what the readings suggest" line follows from (1) and (2), phrased as a
+  suggestion, never an instruction. All score components, tables and pairs are
+  still one tab away ("All numbers").
+- Report page images are now off by default in the detail (they were the slow part
+  of opening a ghat); one toggle turns them on.
+

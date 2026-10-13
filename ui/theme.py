@@ -206,6 +206,44 @@ table.nt-ev {{ border-collapse:collapse; width:100%; font-size:{t[1]}px;
 table.nt-ev th, table.nt-ev td {{ border-bottom:1px solid {c['border']}; padding:{s[1]}px;
   text-align:left; vertical-align:top; }}
 table.nt-ev th {{ font-weight:{w['medium']}; color:{c['muted']}; background:{c['surface']}; }}
+/* map: the auto-tour reruns every few seconds; do not fade the card each time */
+.st-key-card-map [data-stale="true"] {{ opacity:1 !important; transition:none !important; }}
+/* map spotlight (beside the map) */
+.nt-spot {{ border-left:3px solid {c['link']}; padding:{s[1]}px 0 {s[1]}px {s[3]}px;
+  min-height:200px; }}
+.nt-spot-eyebrow {{ font-size:{t[0]}px; letter-spacing:0.08em; text-transform:uppercase;
+  color:{c['muted']}; margin-bottom:{s[1]}px; }}
+.nt-spot-name {{ font-size:{t[3]}px; font-weight:{w['medium']}; line-height:1.3; }}
+.nt-spot-approx {{ font-size:{t[0]}px; color:{c['muted']}; font-weight:{w['regular']}; }}
+.nt-spot-meta {{ font-size:{t[1]}px; margin-top:{s[1]}px; line-height:1.8; }}
+.nt-spot-meta .sep, .nt-v-head .sep {{ color:{c['border']}; margin:0 {s[1]}px; }}
+.nt-spot-score {{ margin-top:{s[2]}px; }}
+.nt-spot-score .n {{ font-size:28px; font-weight:{w['medium']};
+  font-variant-numeric:tabular-nums; }}
+.nt-spot-score .l {{ font-size:{t[0]}px; color:{c['muted']}; }}
+.nt-spot-text {{ font-size:{t[1]}px; line-height:1.55; margin:{s[2]}px 0; }}
+ul.nt-legend {{ list-style:none; padding:0; margin:{s[2]}px 0 0 0; display:grid;
+  grid-template-columns:1fr 1fr; gap:{s[1]}px; font-size:{t[1]}px; }}
+
+/* plain-language verdict in the ghat detail */
+.nt-v-head {{ display:flex; justify-content:space-between; gap:{s[3]}px; align-items:flex-start; }}
+.nt-v-name {{ font-size:{t[4]}px; font-weight:{w['medium']}; line-height:1.25; }}
+.nt-qs {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+  gap:{s[3]}px; margin:{s[4]}px 0 {s[3]}px 0; }}
+.nt-q {{ background:{c['surface']}; border-radius:8px; padding:{s[3]}px {s[4]}px; }}
+.nt-q-title {{ font-size:{t[1]}px; color:{c['muted']}; margin-bottom:{s[1]}px; }}
+.nt-q-fact {{ font-size:{t[1]}px; line-height:1.5; margin:{s[2]}px 0 0 0; }}
+.nt-q-note {{ font-size:{t[0]}px; line-height:1.5; color:{c['muted']}; margin:{s[1]}px 0 0 0; }}
+.nt-answer {{ display:inline-block; font-size:{t[3]}px; font-weight:{w['medium']};
+  line-height:1.3; }}
+.nt-answer.bad {{ color:{TIER['High']['fg']}; }}
+.nt-answer.some {{ color:{TIER['Medium']['fg']}; }}
+.nt-answer.good {{ color:{TIER['Low']['fg']}; }}
+.nt-answer.unknown {{ color:{m['fg']}; border-bottom:1px dashed {m['fg']}; }}
+.nt-suggest {{ border-left:3px solid {c['link']}; padding:{s[1]}px 0 {s[1]}px {s[3]}px; }}
+.nt-suggest p {{ font-size:{t[2]}px; line-height:1.5; margin:0; max-width:80ch; }}
+.nt-callout {{ font-size:{t[1]}px; color:{TIER['High']['fg']}; background:{TIER['High']['bg']};
+  border-radius:{RADIUS_TAG}px; padding:{s[2]}px {s[3]}px; margin:{s[3]}px 0 0 0; }}
 .nt-page img {{ width:100%; border:1px solid {c['border']}; border-radius:{RADIUS_CARD}px; }}
 </style>
 """

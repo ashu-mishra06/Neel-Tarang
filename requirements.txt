@@ -2,6 +2,7 @@ pandas==2.3.3
 PyYAML==6.0.3
 pydantic==2.12.3
 streamlit==1.50.0
+pydeck==0.9.3
 PyMuPDF==1.26.5
 Jinja2==3.1.6
 Pillow==11.3.0

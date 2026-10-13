@@ -1,0 +1,9 @@
+data_site,lat,lon,precision,source,source_url,note
+Prempura ghat,23.2175960,77.3754926,mapped,OpenStreetMap (Nominatim: "prempura ghat"),https://nominatim.openstreetmap.org/search?q=Prempura+Bhopal&format=json,OSM point for the ghat
+Shahpura lake ghat,23.2066574,77.4212385,water body,OpenStreetMap (Nominatim: "Shahpura Lake"),https://nominatim.openstreetmap.org/search?q=Shahpura+Lake+Bhopal&format=json,centre of the lake; ghat is on its shore
+Bairagarh (Sant Hirdaram) kund,23.2744574,77.3365630,locality,"OpenStreetMap (Nominatim: ""Bairagarh, Huzur Tahsil"")",https://nominatim.openstreetmap.org/search?q=Bairagarh+Bhopal&format=json,locality centre; kund itself not mapped
+Malikhedi kund,23.2012989,77.3055451,locality,"OpenStreetMap (Nominatim: ""Malikheri, Huzur Tahsil"")",https://nominatim.openstreetmap.org/search?q=Malikheri+Bhopal&format=json,locality centre; spelling Malikheri in OSM - confirm with BMC
+Hathaikheda dam / kund,23.2581238,77.4888388,water body,ifoundbutterflies.org site page (Hatai Kheda lake),https://www.ifoundbutterflies.org/hatai-kheda-lake-bhopal-district-madhya-pradesh-india,observation-site point for the lake
+Khatlapura ghat,23.2455,77.4085,estimate,Team estimate on the Lower Lake shore near Jahangirabad (Lower Lake: OSM 23.2485 77.4045),https://en.wikipedia.org/wiki/Lower_Lake_(Bhopal),approximate - not surveyed
+Rani Kamlapati ghat / Kamla Park kund,23.2540,77.3990,estimate,Team estimate at the west end of the Lower Lake (Kamla Park / Pul Pukhta),https://en.wikipedia.org/wiki/Lower_Lake_(Bhopal),approximate - not surveyed; site may be two places
+Arch Bridge,23.2525,77.4060,estimate,"Team estimate: arch bridge over the Lower Lake, Kilol Park to Ginnori (TPF project page)",https://tpf.eu/projects/bhopal-arc-bridge,approximate - not surveyed
